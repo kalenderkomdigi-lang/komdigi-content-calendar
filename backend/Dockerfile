@@ -16,6 +16,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o main .
 # Stage 2: Final Run
 FROM alpine:latest
 
+RUN apk --no-cache add ca-certificates tzdata
+
 WORKDIR /app
 
 # Copy built binary from builder
