@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  
+  /* KOMDIGI Brand Palette */
+  --color-komdigi-navy: #0B2545;       /* Deep Corporate Navy */
+  --color-komdigi-navy-light: #133966; /* Light Corporate Navy */
+  --color-komdigi-blue: #1E40AF;       /* Royal Blue */
+  --color-komdigi-gold: #D97706;       /* Official Warm Gold */
+  --color-komdigi-amber: #F59E0B;      /* Bright Amber Gold */
+  --color-komdigi-bg: #F8FAFC;         /* Soft Instansi Slate */
+}
+
+:root {
+  --background: #F8FAFC;
+  --foreground: #0F172A;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Custom scrollbars for clean corporate interface */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Corporate Glassmorphism & Panel Utilities */
+.komdigi-panel {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+}
+
+.komdigi-header-navy {
+  background: linear-gradient(135deg, #0B2545 0%, #133966 100%);
+}
+
+.komdigi-card-hover {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.komdigi-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(11, 37, 69, 0.08), 0 8px 10px -6px rgba(11, 37, 69, 0.04);
+}
+
+/* Custom glow / border indicators for category events */
+.glow-nasional {
+  border-left: 4px solid #DC2626;
+  background-color: #FEF2F2;
+}
+
+.glow-internasional {
+  border-left: 4px solid #0D9488;
+  background-color: #F0FDFA;
+}
+
+.glow-teknologi {
+  border-left: 4px solid #2563EB;
+  background-color: #EFF6FF;
+}
+
+.glow-literasi_digital {
+  border-left: 4px solid #D97706;
+  background-color: #FFFBEB;
+}
+
+/* Typewriter cursor effect */
+@keyframes blink {
+  50% { border-color: transparent }
+}
+
+.typewriter-cursor {
+  border-right: 2px solid #0B2545;
+  animation: blink 0.75s step-end infinite;
+}
+
+/* Smooth Transitions & Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slideIn {
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Stagger delay utilities */
+.stagger-1 { animation-delay: 0.04s; }
+.stagger-2 { animation-delay: 0.08s; }
+.stagger-3 { animation-delay: 0.12s; }
+.stagger-4 { animation-delay: 0.16s; }
+.stagger-5 { animation-delay: 0.2s; }
