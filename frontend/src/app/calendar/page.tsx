@@ -37,7 +37,9 @@ import {
   Shield,
   Layers,
   Sparkle,
-  Mic
+  Mic,
+  Target,
+  Compass
 } from 'lucide-react';
 import { 
   exportIdeasToPDF, 
@@ -101,6 +103,44 @@ const MONTH_NAMES = [
 
 const DAY_NAMES = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
+const CONTENT_PILLARS = [
+  {
+    name: 'Semua Pilar',
+    icon: '🎯',
+    label: 'Semua Pilar',
+    tagline: 'Kombinasi Dinamis',
+    desc: 'Campuran beragam pilar sesuai kebutuhan publikasi instansi'
+  },
+  {
+    name: 'Education/Information',
+    icon: '📚',
+    label: 'Education / Info',
+    tagline: 'Edukasi & Panduan',
+    desc: 'Tutorial teknis, infografis fakta & literasi digital masyarakat'
+  },
+  {
+    name: 'Entertainment',
+    icon: '🎮',
+    label: 'Entertainment',
+    tagline: 'Kuis & Tantangan',
+    desc: 'Tebak-tebakan teknologi, kuis interaktif & challenge seru'
+  },
+  {
+    name: 'Trend',
+    icon: '🚀',
+    label: 'Trend & Inovasi',
+    tagline: 'AI & Isu Terkini',
+    desc: 'Perkembangan AI mutakhir, algoritma baru & tren viral'
+  },
+  {
+    name: 'Konten Nasional',
+    icon: '🇮🇩',
+    label: 'Konten Nasional',
+    tagline: 'Wawasan Kebangsaan',
+    desc: 'Peringatan hari besar nasional & program prioritas pemerintah'
+  }
+];
+
 export default function CalendarPage() {
   const router = useRouter();
   
@@ -112,6 +152,7 @@ export default function CalendarPage() {
 
   // Copilot Form States
   const [customTheme, setCustomTheme] = useState('');
+  const [selectedPillar, setSelectedPillar] = useState<string>('Semua Pilar');
   const [generatingIdeas, setGeneratingIdeas] = useState(false);
   const [generatedIdeas, setGeneratedIdeas] = useState<IdeaItem[]>([]);
   const [savingTheme, setSavingTheme] = useState(false);
@@ -240,7 +281,10 @@ export default function CalendarPage() {
     try {
       const res = await apiFetch<{ ideas: IdeaItem[] }>('/api/content/generate-ideas', {
         method: 'POST',
-        body: JSON.stringify({ theme: customTheme }),
+        body: JSON.stringify({ 
+          theme: customTheme,
+          content_pillar: selectedPillar === 'Semua Pilar' ? '' : selectedPillar
+        }),
       });
       setGeneratedIdeas(res.ideas);
       showFeedback('Ide konten berhasil dirancang oleh Asisten Komdigi!', 'success');
@@ -301,7 +345,11 @@ export default function CalendarPage() {
   };
 
   const handleCopyIdea = (idea: IdeaItem, index: number) => {
-    let copyText = `*${idea.title}*\nFormat: ${idea.format || '-'}\n\n${idea.summary}`;
+    let copyText = `*${idea.title}*\nFormat: ${idea.format || '-'}`;
+    if (idea.pillar) {
+      copyText += `\nPilar Konten: ${idea.pillar}`;
+    }
+    copyText += `\n\n${idea.summary}`;
     if (idea.reference_url) {
       copyText += `\n\nContoh Referensi: ${idea.reference_url}`;
     }
@@ -693,7 +741,11 @@ export default function CalendarPage() {
                               : '';
                             const res = await apiFetch<{ themes: string[] }>('/api/content/generate-theme', {
                               method: 'POST',
-                              body: JSON.stringify({ niche: selectedNiche || 'Umum', date: dateStr }),
+                              body: JSON.stringify({ 
+                                niche: selectedNiche || 'Umum', 
+                                date: dateStr,
+                                content_pillar: selectedPillar === 'Semua Pilar' ? '' : selectedPillar
+                              }),
                             });
                             setSuggestedThemes(res.themes);
                             showFeedback('Rekomendasi tema berhasil dibuat!', 'success');
@@ -785,6 +837,61 @@ export default function CalendarPage() {
                       </div>
                     </div>
 
+                    {/* Content Pillar Selector */}
+                    <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2.5 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-extrabold text-[#0B2545] uppercase tracking-wider flex items-center space-x-1.5">
+                          <Target className="h-4 w-4 text-amber-500" />
+                          <span>Pilar Konten (Content Pillar)</span>
+                        </label>
+                        <span className="text-[10px] text-slate-500 font-semibold bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                          Arahkan fokus ide AI
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                        {CONTENT_PILLARS.map((pillar) => {
+                          const isSelected = selectedPillar === pillar.name;
+                          return (
+                            <button
+                              key={pillar.name}
+                              type="button"
+                              onClick={() => setSelectedPillar(pillar.name)}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between group ${
+                                isSelected
+                                  ? 'bg-[#0B2545] text-white border-[#0B2545] shadow-xs ring-2 ring-[#0B2545]/20'
+                                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                              }`}
+                            >
+                              <div className="flex items-center space-x-1.5 mb-1">
+                                <span className="text-sm shrink-0">{pillar.icon}</span>
+                                <span className={`text-[11px] font-bold truncate ${isSelected ? 'text-amber-300' : 'text-slate-800'}`}>
+                                  {pillar.label}
+                                </span>
+                              </div>
+                              <span className={`text-[9.5px] leading-tight font-medium ${isSelected ? 'text-slate-200' : 'text-slate-500'}`}>
+                                {pillar.tagline}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Active Pillar Description Banner */}
+                      {(() => {
+                        const activeObj = CONTENT_PILLARS.find(p => p.name === selectedPillar);
+                        return activeObj ? (
+                          <div className="mt-1 p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80 flex items-start space-x-2 text-[11px] text-slate-700">
+                            <span className="text-amber-600 font-bold shrink-0 mt-0.5">{activeObj.icon}</span>
+                            <div className="leading-snug">
+                              <span className="font-extrabold text-[#0B2545]">{activeObj.name}: </span>
+                              <span className="font-medium text-slate-600">{activeObj.desc}</span>
+                            </div>
+                          </div>
+                        ) : null;
+                      })()}
+                    </div>
+
                     {/* AI Core Generation Trigger */}
                     <div>
                       <button
@@ -855,8 +962,22 @@ export default function CalendarPage() {
                             <span className="px-2 py-0.5 rounded bg-[#0B2545] text-amber-400 text-[9.5px] font-extrabold uppercase tracking-wider">
                               Ide 0{idx + 1}
                             </span>
+                            {idea.pillar && (
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9.5px] font-bold border ${
+                                idea.pillar === 'Entertainment' 
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                  : idea.pillar === 'Trend'
+                                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                  : idea.pillar === 'Konten Nasional'
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                  : 'bg-blue-50 text-blue-700 border-blue-200'
+                              }`}>
+                                {idea.pillar === 'Entertainment' ? '🎮 ' : idea.pillar === 'Trend' ? '🚀 ' : idea.pillar === 'Konten Nasional' ? '🇮🇩 ' : '📚 '}
+                                {idea.pillar}
+                              </span>
+                            )}
                             {idea.format && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 text-[9.5px] font-bold">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 text-[9.5px] font-bold">
                                 {idea.format}
                               </span>
                             )}

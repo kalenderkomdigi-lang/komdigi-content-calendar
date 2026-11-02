@@ -12,7 +12,8 @@ import (
 )
 
 type GenerateIdeasRequest struct {
-	Theme string `json:"theme" binding:"required"`
+	Theme         string `json:"theme" binding:"required"`
+	ContentPillar string `json:"content_pillar"`
 }
 
 type SaveContentRequest struct {
@@ -28,8 +29,9 @@ type GenerateVideoContentRequest struct {
 }
 
 type GenerateThemesRequest struct {
-	Niche string `json:"niche" binding:"required"`
-	Date  string `json:"date"`
+	Niche         string `json:"niche" binding:"required"`
+	Date          string `json:"date"`
+	ContentPillar string `json:"content_pillar"`
 }
 
 func GenerateIdeas(c *gin.Context) {
@@ -39,10 +41,10 @@ func GenerateIdeas(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(c.Request.Context(), 45*time.Second)
 	defer cancel()
 
-	ideas, err := services.GenerateContentIdeas(ctx, req.Theme)
+	ideas, err := services.GenerateContentIdeas(ctx, req.Theme, req.ContentPillar)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghasilkan ide konten: " + err.Error()})
 		return
@@ -197,7 +199,7 @@ func GenerateThemes(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 60*time.Second)
 	defer cancel()
 
-	themes, err := services.GenerateContentThemes(ctx, req.Niche, req.Date)
+	themes, err := services.GenerateContentThemes(ctx, req.Niche, req.Date, req.ContentPillar)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Gagal menghasilkan rekomendasi tema: " + err.Error()})
 		return

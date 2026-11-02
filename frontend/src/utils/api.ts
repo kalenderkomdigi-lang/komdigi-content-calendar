@@ -60,6 +60,7 @@ export interface IdeaItem {
   summary: string;
   format: string;        // "Video Pendek", "Poster Infografis", "Carousel Instagram", etc.
   reference_url: string; // Link to sample content (YouTube, Instagram, etc.)
+  pillar?: string;       // Content Pillar: "Entertainment", "Trend", "Education/Information", "Konten Nasional"
 }
 
 export interface ContentIdea {

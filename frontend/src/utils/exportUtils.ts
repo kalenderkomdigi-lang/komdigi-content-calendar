@@ -89,6 +89,7 @@ export const exportIdeasToPDF = (theme: string, dateStr: string, ideas: IdeaItem
   const tableData = ideas.map((idea, idx) => [
     `0${idx + 1}`,
     idea.title || '-',
+    idea.pillar || '-',
     idea.format || '-',
     idea.summary || '-',
     idea.reference_url || '-'
@@ -96,7 +97,7 @@ export const exportIdeasToPDF = (theme: string, dateStr: string, ideas: IdeaItem
 
   autoTable(doc, {
     startY: 48,
-    head: [['No', 'Judul Ide Konten', 'Format', 'Ringkasan / Alur Pembahasan', 'Link Referensi']],
+    head: [['No', 'Judul Ide Konten', 'Pilar Konten', 'Format', 'Ringkasan / Alur Pembahasan', 'Link Referensi']],
     body: tableData,
     theme: 'grid',
     headStyles: {
@@ -107,16 +108,17 @@ export const exportIdeasToPDF = (theme: string, dateStr: string, ideas: IdeaItem
       halign: 'center'
     },
     bodyStyles: {
-      fontSize: 8.5,
+      fontSize: 8,
       textColor: [51, 65, 85],
-      cellPadding: 4
+      cellPadding: 3.5
     },
     columnStyles: {
-      0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 42, fontStyle: 'bold' },
-      2: { cellWidth: 28, halign: 'center' },
-      3: { cellWidth: 65 },
-      4: { cellWidth: 40, textColor: [37, 99, 235] }
+      0: { cellWidth: 8, halign: 'center', fontStyle: 'bold' },
+      1: { cellWidth: 38, fontStyle: 'bold' },
+      2: { cellWidth: 26, halign: 'center' },
+      3: { cellWidth: 24, halign: 'center' },
+      4: { cellWidth: 55 },
+      5: { cellWidth: 34, textColor: [37, 99, 235] }
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252]
@@ -132,6 +134,7 @@ export const exportIdeasToExcel = (theme: string, dateStr: string, ideas: IdeaIt
     'No': idx + 1,
     'Tema Utama': theme,
     'Tanggal': dateStr || '-',
+    'Pilar Konten': idea.pillar || '-',
     'Judul Ide Konten': idea.title,
     'Format Konten': idea.format,
     'Ringkasan Konten': idea.summary,
@@ -145,6 +148,7 @@ export const exportIdeasToExcel = (theme: string, dateStr: string, ideas: IdeaIt
     { wch: 5 },  // No
     { wch: 25 }, // Tema Utama
     { wch: 15 }, // Tanggal
+    { wch: 22 }, // Pilar Konten
     { wch: 35 }, // Judul Ide
     { wch: 20 }, // Format Konten
     { wch: 50 }, // Ringkasan Konten
@@ -338,6 +342,7 @@ export const exportHistoryItemToPDF = (item: ContentIdea) => {
     const tableData = item.ideas.map((idea, idx) => [
       `0${idx + 1}`,
       idea.title || '-',
+      idea.pillar || '-',
       idea.format || '-',
       idea.summary || '-',
       idea.reference_url || '-'
@@ -345,7 +350,7 @@ export const exportHistoryItemToPDF = (item: ContentIdea) => {
 
     autoTable(doc, {
       startY: currentY,
-      head: [['No', 'Judul Ide Konten', 'Format', 'Ringkasan / Alur Pembahasan', 'Link Referensi']],
+      head: [['No', 'Judul Ide Konten', 'Pilar Konten', 'Format', 'Ringkasan / Alur Pembahasan', 'Link Referensi']],
       body: tableData,
       theme: 'grid',
       headStyles: {
@@ -361,11 +366,12 @@ export const exportHistoryItemToPDF = (item: ContentIdea) => {
         cellPadding: 3.5
       },
       columnStyles: {
-        0: { cellWidth: 10, halign: 'center', fontStyle: 'bold' },
-        1: { cellWidth: 42, fontStyle: 'bold' },
-        2: { cellWidth: 28, halign: 'center' },
-        3: { cellWidth: 65 },
-        4: { cellWidth: 40, textColor: [37, 99, 235] }
+        0: { cellWidth: 8, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 38, fontStyle: 'bold' },
+        2: { cellWidth: 26, halign: 'center' },
+        3: { cellWidth: 24, halign: 'center' },
+        4: { cellWidth: 55 },
+        5: { cellWidth: 34, textColor: [37, 99, 235] }
       }
     });
 
@@ -419,6 +425,7 @@ export const exportHistoryItemToExcel = (item: ContentIdea) => {
       'No': idx + 1,
       'Tema': item.theme,
       'Jadwal Tayang': dateFormatted,
+      'Pilar Konten': idea.pillar || '-',
       'Judul Ide': idea.title,
       'Format': idea.format,
       'Ringkasan': idea.summary,
@@ -429,6 +436,7 @@ export const exportHistoryItemToExcel = (item: ContentIdea) => {
       { wch: 5 },
       { wch: 25 },
       { wch: 15 },
+      { wch: 22 },
       { wch: 35 },
       { wch: 20 },
       { wch: 50 },

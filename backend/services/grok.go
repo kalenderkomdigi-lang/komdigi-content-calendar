@@ -120,13 +120,27 @@ func callGrokAPI(ctx context.Context, messages []GrokMessage, jsonMode bool) (st
 	return chatResp.Choices[0].Message.Content, nil
 }
 
-func GenerateContentIdeas(ctx context.Context, theme string) ([]models.IdeaItem, error) {
-	prompt := fmt.Sprintf(`Buat 3 ide postingan media sosial yang informatif, menarik, edukatif, dan profesional berstandar instansi pemerintah (BLSDM Komdigi) berdasarkan tema: "%s".
+func GenerateContentIdeas(ctx context.Context, theme string, contentPillar string) ([]models.IdeaItem, error) {
+	pillarInstruction := ""
+	samplePillar := "Education/Information"
+	if contentPillar != "" && contentPillar != "Semua Pilar" {
+		samplePillar = contentPillar
+		pillarInstruction = fmt.Sprintf(`
+5. WAJIB FOKUS PADA PILAR KONTEN "%s":
+Semua ide konten yang dihasilkan WAJIB secara spesifik merefleksikan karakteristik pilar ini:
+- Jika "Entertainment": Buat konten kuis interaktif, tebak-tebakan teknologi (contoh: "Tebak mana gambar AI vs manusia", "Tebak teknologi di Smart City"), mini challenge, atau mitos vs fakta yang menyenangkan masyarakat.
+- Jika "Education/Information": Buat konten panduan teknis, infografis langkah praktis, penjelasan konsep teknologi/komunikasi (contoh: "Evolusi komunikasi dari surat hingga AI", "5 Kesalahan membaca statistik data").
+- Jika "Trend": Buat konten pembahasan isu/tren terkini, AI Agent, AI Voice, inovasi mutakhir, atau fenomena teknologi yang sedang viral diperbincangkan.
+- Jika "Konten Nasional": Buat konten wawasan kebangsaan, peringatan hari nasional (Sumpah Pemuda, Hari Pahlawan, dll), dan program prioritas kedaulatan digital RI.`, contentPillar)
+	}
+
+	prompt := fmt.Sprintf(`Buat 3 ide postingan media sosial yang informatif, menarik, edukatif, dan profesional berstandar instansi pemerintah (BLSDM Komdigi) berdasarkan tema: "%s".%s
  
 Setiap ide harus memiliki:
 - "title": judul konten yang informatif, jelas, resmi, dan menarik perhatian masyarakat.
 - "summary": ringkasan singkat isi konten yang menjelaskan pesan edukatif/informasi publik secara terstruktur, santun, dan mudah dipahami.
 - "format": jenis format konten (pilih salah satu: "Reels/TikTok", "Carousel Instagram", "Video Pendek", "Poster Infografis", "Motion Graphic")
+- "pillar": sebutkan pilar konten untuk ide ini (contoh: "%s", "Entertainment", "Education/Information", "Trend", atau "Konten Nasional")
 - "reference_url": satu link YouTube, TikTok, atau Instagram yang relevan. KETENTUAN UTAMA: Jangan pernah mengarang ID video spesifik (seperti instagram.com/p/random_id atau tiktok.com/@user/video/random_id) karena link tersebut 100%% akan mati/tidak ditemukan. Sebagai gantinya, gunakan URL pencarian tagar/hashtag aktif (seperti https://www.tiktok.com/tag/literasidigital atau https://www.instagram.com/explore/tags/keamanansiber/) ATAU gunakan link pencarian video YouTube yang stabil (seperti https://www.youtube.com/results?search_query=literasi+digital). Link harus selalu valid dan berawalan https://.
  
 Ketentuan:
@@ -137,10 +151,10 @@ Ketentuan:
  
 Format output harus tepat berupa JSON array:
 [
-  {"title": "...", "summary": "...", "format": "Reels/TikTok", "reference_url": "https://...."},
-  {"title": "...", "summary": "...", "format": "Carousel Instagram", "reference_url": "https://...."},
-  {"title": "...", "summary": "...", "format": "Video Pendek", "reference_url": "https://...."}  
-]`, theme, theme)
+  {"title": "...", "summary": "...", "format": "Reels/TikTok", "pillar": "%s", "reference_url": "https://...."},
+  {"title": "...", "summary": "...", "format": "Carousel Instagram", "pillar": "%s", "reference_url": "https://...."},
+  {"title": "...", "summary": "...", "format": "Video Pendek", "pillar": "%s", "reference_url": "https://...."}  
+]`, theme, pillarInstruction, samplePillar, theme, samplePillar, samplePillar, samplePillar)
 
 	messages := []GrokMessage{
 		{Role: "user", Content: prompt},
@@ -150,7 +164,7 @@ Format output harus tepat berupa JSON array:
 	jsonText, err := callGrokAPI(ctx, messages, true)
 	if err != nil {
 		log.Printf("Grok AI ideas generation failed: %v. Falling back to Gemini...", err)
-		return GenerateContentIdeasWithGemini(ctx, theme)
+		return GenerateContentIdeasWithGemini(ctx, theme, contentPillar)
 	}
 
 	jsonText = cleanJSONString(jsonText)
@@ -158,7 +172,18 @@ Format output harus tepat berupa JSON array:
 	err = json.Unmarshal([]byte(jsonText), &ideas)
 	if err != nil {
 		log.Printf("Failed to parse JSON from Grok response: %s. Error: %v. Falling back to Gemini...", jsonText, err)
-		return GenerateContentIdeasWithGemini(ctx, theme)
+		return GenerateContentIdeasWithGemini(ctx, theme, contentPillar)
+	}
+
+	// Ensure pillar is set if model omitted it
+	for i := range ideas {
+		if ideas[i].Pillar == "" {
+			if contentPillar != "" && contentPillar != "Semua Pilar" {
+				ideas[i].Pillar = contentPillar
+			} else {
+				ideas[i].Pillar = "Education/Information"
+			}
+		}
 	}
 
 	return ideas, nil
@@ -292,12 +317,17 @@ Format output harus tepat berupa JSON object:
 }
 
 // GenerateContentThemes generates 3 recommendations for themes using Grok AI with fallback to Gemini
-func GenerateContentThemes(ctx context.Context, niche string, dateStr string) ([]string, error) {
+func GenerateContentThemes(ctx context.Context, niche string, dateStr string, contentPillar string) ([]string, error) {
+	pillarNote := ""
+	if contentPillar != "" && contentPillar != "Semua Pilar" {
+		pillarNote = fmt.Sprintf("\n- Sangat disarankan tema mengarah ke pilar konten: \"%s\".", contentPillar)
+	}
+
 	prompt := fmt.Sprintf(`Buat 3 rekomendasi tema/topik konten media sosial yang informatif, edukatif, dan profesional berstandar instansi pemerintah (BLSDM Komdigi) berdasarkan niche: "%s".
  
 Setiap tema harus:
 - Singkat, padat, berupa judul topik/tema konten (maksimal 6-8 kata, tanpa tanda petik, contoh: "Panduan Keamanan Data Pribadi Masyarakat").
-- Relevan dengan edukasi publik dan peningkatan keterampilan digital masyarakat Indonesia.
+- Relevan dengan edukasi publik dan peningkatan keterampilan digital masyarakat Indonesia.%s
 - Secara profesional dihubungkan dengan program/fokus utama dari BLSDM Komdigi (Badan Pengembangan Sumber Daya Manusia Komunikasi dan Digital - Kemenkominfo/Komdigi), seperti program beasiswa pelatihan gratis Digital Talent Scholarship (DTS), kelas literasi digital, beasiswa IT, cybersecurity, digital marketing, AI academy, coding, atau kecakapan digital lainnya.
 
 Jika tanggal "%s" disediakan, sesuaikan tema tersebut agar relevan dengan hari penting/event nasional/internasional pada tanggal tersebut (jika ada).
@@ -307,7 +337,7 @@ Format output harus tepat berupa JSON array of strings:
   "Tema 1",
   "Tema 2",
   "Tema 3"
-]`, niche, dateStr)
+]`, niche, pillarNote, dateStr)
 
 	messages := []GrokMessage{
 		{Role: "user", Content: prompt},
@@ -319,7 +349,7 @@ Format output harus tepat berupa JSON array of strings:
 		log.Printf("Grok AI themes generation failed: %v. Falling back to Gemini...", err)
 		geminiCtx, geminiCancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer geminiCancel()
-		return GenerateContentThemesWithGemini(geminiCtx, niche, dateStr)
+		return GenerateContentThemesWithGemini(geminiCtx, niche, dateStr, contentPillar)
 	}
 
 	jsonText = cleanAndRepairJSONArray(jsonText)
@@ -329,7 +359,7 @@ Format output harus tepat berupa JSON array of strings:
 		log.Printf("Failed to parse JSON from Grok themes response: %s. Error: %v. Falling back to Gemini...", jsonText, err)
 		geminiCtx, geminiCancel := context.WithTimeout(context.Background(), 60*time.Second)
 		defer geminiCancel()
-		return GenerateContentThemesWithGemini(geminiCtx, niche, dateStr)
+		return GenerateContentThemesWithGemini(geminiCtx, niche, dateStr, contentPillar)
 	}
 
 	return themes, nil

@@ -22,24 +22,32 @@ func isPlaceholderKey(key string) bool {
 }
 
 // GenerateMockIdeas generates placeholder content if the Gemini API key is missing
-func GenerateMockIdeas(theme string) []models.IdeaItem {
+func GenerateMockIdeas(theme string, contentPillar string) []models.IdeaItem {
+	pillar := contentPillar
+	if pillar == "" || pillar == "Semua Pilar" {
+		pillar = "Education/Information"
+	}
+
 	return []models.IdeaItem{
 		{
 			Title:        fmt.Sprintf("Program Beasiswa Digital Talent Scholarship (DTS) BLSDM Komdigi: (%s)", theme),
 			Summary:      "Video publikasi resmi yang mengulas alur pendaftaran dan manfaat pelatihan gratis bidang AI, Coding, serta Digital Marketing dari program DTS BLSDM Komdigi secara terstruktur dan informatif.",
 			Format:       "Reels/TikTok",
+			Pillar:       pillar,
 			ReferenceURL: "https://www.instagram.com/explore/tags/digitaltalentscholarship/",
 		},
 		{
 			Title:        "Panduan Sertifikasi Standar Nasional IT & Komunikasi 💻",
 			Summary:      "Slide infografis resmi memuat syarat pendaftaran, kurikulum standar industri, dan fasilitas sertifikasi kompetensi gratis yang diselenggarakan oleh BLSDM Komdigi.",
 			Format:       "Carousel Instagram",
+			Pillar:       pillar,
 			ReferenceURL: "https://www.instagram.com/explore/tags/literasidigital/",
 		},
 		{
 			Title:        "3 Peningkatan Kecakapan Digital Utama untuk Masyarakat 🏛️",
 			Summary:      "Video informasi publik berdurasi singkat yang mengulas pentingnya Cybersecurity, Cloud Computing, dan Data Science yang diselenggarakan oleh BLSDM Komdigi.",
 			Format:       "Video Pendek",
+			Pillar:       pillar,
 			ReferenceURL: "https://www.youtube.com/results?search_query=digital+talent+scholarship",
 		},
 	}
@@ -53,18 +61,22 @@ func GenerateMockCaption(theme string, ideas []models.IdeaItem) string {
 	sb.WriteString(fmt.Sprintf("Dalam rangka meningkatkan literasi serta kecakapan digital nasional, berikut adalah informasi penting terkait \"%s\" yang perlu diperhatikan oleh seluruh Digiers:\n\n", theme))
 	sb.WriteString("Berikut 3 ide publikasi konten yang direkomendasikan:\n")
 	for _, idea := range ideas {
-		sb.WriteString(fmt.Sprintf("📌 %s\n💡 %s\n\n", idea.Title, idea.Summary))
+		pillarStr := ""
+		if idea.Pillar != "" {
+			pillarStr = fmt.Sprintf(" [%s]", idea.Pillar)
+		}
+		sb.WriteString(fmt.Sprintf("📌 %s%s\n💡 %s\n\n", idea.Title, pillarStr, idea.Summary))
 	}
 	sb.WriteString("Mari bersama-sama memperkuat pemahaman digital demi mewujudkan Indonesia yang makin melek digital dan aman di ruang siber. Silakan bagikan informasi resmi ini kepada sesama Digiers dan keluarga Anda. 🏛️✨\n\n")
 	sb.WriteString("#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital #Kemenkomdigi #Komdigi")
 	return sb.String()
 }
 
-func GenerateContentIdeasWithGemini(ctx context.Context, theme string) ([]models.IdeaItem, error) {
+func GenerateContentIdeasWithGemini(ctx context.Context, theme string, contentPillar string) ([]models.IdeaItem, error) {
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if isPlaceholderKey(apiKey) {
 		log.Println("WARNING: GEMINI_API_KEY is not set or is a placeholder. Using mock content generator.")
-		return GenerateMockIdeas(theme), nil
+		return GenerateMockIdeas(theme, contentPillar), nil
 	}
 
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
@@ -76,12 +88,26 @@ func GenerateContentIdeasWithGemini(ctx context.Context, theme string) ([]models
 	model := client.GenerativeModel("gemini-3.5-flash-lite")
 	model.GenerationConfig.ResponseMIMEType = "application/json"
 
-	prompt := fmt.Sprintf(`Buat 3 ide postingan media sosial yang informatif, menarik, edukatif, dan profesional berstandar instansi pemerintah (BLSDM Komdigi) berdasarkan tema: "%s".
+	pillarInstruction := ""
+	samplePillar := "Education/Information"
+	if contentPillar != "" && contentPillar != "Semua Pilar" {
+		samplePillar = contentPillar
+		pillarInstruction = fmt.Sprintf(`
+5. WAJIB FOKUS PADA PILAR KONTEN "%s":
+Semua ide konten yang dihasilkan WAJIB secara spesifik merefleksikan pilar ini:
+- Jika "Entertainment": Buat konten kuis interaktif, tebak-tebakan teknologi (contoh: "Tebak mana gambar AI vs manusia", "Tebak teknologi di Smart City"), mini challenge, atau mitos vs fakta yang menyenangkan masyarakat.
+- Jika "Education/Information": Buat konten panduan teknis, infografis langkah praktis, penjelasan konsep teknologi/komunikasi (contoh: "Evolusi komunikasi dari surat hingga AI", "5 Kesalahan membaca statistik data").
+- Jika "Trend": Buat konten pembahasan isu/tren terkini, AI Agent, AI Voice, inovasi mutakhir, atau fenomena teknologi yang sedang viral diperbincangkan.
+- Jika "Konten Nasional": Buat konten wawasan kebangsaan, peringatan hari nasional (Sumpah Pemuda, Hari Pahlawan, dll), dan program prioritas kedaulatan digital RI.`, contentPillar)
+	}
+
+	prompt := fmt.Sprintf(`Buat 3 ide postingan media sosial yang informatif, menarik, edukatif, dan profesional berstandar instansi pemerintah (BLSDM Komdigi) berdasarkan tema: "%s".%s
  
 Setiap ide harus memiliki:
 - "title": judul konten yang informatif, jelas, resmi, dan menarik perhatian masyarakat.
 - "summary": ringkasan singkat isi konten yang menjelaskan pesan edukatif/informasi publik secara terstruktur, santun, dan mudah dipahami.
 - "format": jenis format konten (pilih salah satu: "Reels/TikTok", "Carousel Instagram", "Video Pendek", "Poster Infografis", "Motion Graphic")
+- "pillar": sebutkan pilar konten ide ini (contoh: "%s", "Entertainment", "Education/Information", "Trend", atau "Konten Nasional")
 - "reference_url": satu link YouTube, TikTok, atau Instagram yang relevan. KETENTUAN UTAMA: Jangan pernah mengarang ID video spesifik (seperti instagram.com/p/random_id atau tiktok.com/@user/video/random_id) karena link tersebut 100%% akan mati/tidak ditemukan. Sebagai gantinya, gunakan URL pencarian tagar/hashtag aktif (seperti https://www.tiktok.com/tag/literasidigital atau https://www.instagram.com/explore/tags/keamanansiber/) ATAU gunakan link pencarian video YouTube yang stabil (seperti https://www.youtube.com/results?search_query=literasi+digital). Link harus selalu valid dan berawalan https://.
  
 Ketentuan:
@@ -92,10 +118,10 @@ Ketentuan:
  
 Format output harus tepat berupa JSON array:
 [
-  {"title": "...", "summary": "...", "format": "Reels/TikTok", "reference_url": "https://...."},
-  {"title": "...", "summary": "...", "format": "Carousel Instagram", "reference_url": "https://...."},
-  {"title": "...", "summary": "...", "format": "Video Pendek", "reference_url": "https://...."}  
-]`, theme, theme)
+  {"title": "...", "summary": "...", "format": "Reels/TikTok", "pillar": "%s", "reference_url": "https://...."},
+  {"title": "...", "summary": "...", "format": "Carousel Instagram", "pillar": "%s", "reference_url": "https://...."},
+  {"title": "...", "summary": "...", "format": "Video Pendek", "pillar": "%s", "reference_url": "https://...."}  
+]`, theme, pillarInstruction, samplePillar, theme, samplePillar, samplePillar, samplePillar)
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
@@ -125,6 +151,16 @@ Format output harus tepat berupa JSON array:
 	if err != nil {
 		log.Printf("Failed to parse JSON from Gemini response: %s. Error: %v", jsonText, err)
 		return nil, fmt.Errorf("failed to parse JSON response: %v", err)
+	}
+
+	for i := range ideas {
+		if ideas[i].Pillar == "" {
+			if contentPillar != "" && contentPillar != "Semua Pilar" {
+				ideas[i].Pillar = contentPillar
+			} else {
+				ideas[i].Pillar = "Education/Information"
+			}
+		}
 	}
 
 	return ideas, nil
@@ -476,20 +512,25 @@ func GenerateCaptionFromThemeTextWithGemini(ctx context.Context, theme string) (
 }
 
 // GenerateMockThemes generates a list of placeholder themes if the Gemini API key is missing
-func GenerateMockThemes(niche string) []string {
+func GenerateMockThemes(niche string, contentPillar string) []string {
+	prefix := ""
+	if contentPillar != "" && contentPillar != "Semua Pilar" {
+		prefix = fmt.Sprintf("[%s] ", contentPillar)
+	}
+
 	return []string{
-		fmt.Sprintf("Peningkatan Kapasitas SDM Digital Melalui %s 🚀", niche),
-		fmt.Sprintf("Fakta dan Edukasi Keamanan Informasi Seputar %s 🏛️", niche),
-		fmt.Sprintf("Panduan Pemanfaatan Program Pelatihan %s BLSDM Komdigi 🎓", niche),
+		fmt.Sprintf("%sPeningkatan Kapasitas SDM Digital Melalui %s 🚀", prefix, niche),
+		fmt.Sprintf("%sFakta dan Edukasi Keamanan Informasi Seputar %s 🏛️", prefix, niche),
+		fmt.Sprintf("%sPanduan Pemanfaatan Program Pelatihan %s BLSDM Komdigi 🎓", prefix, niche),
 	}
 }
 
 // GenerateContentThemesWithGemini generates 3 recommendations for themes using Gemini
-func GenerateContentThemesWithGemini(ctx context.Context, niche string, dateStr string) ([]string, error) {
+func GenerateContentThemesWithGemini(ctx context.Context, niche string, dateStr string, contentPillar string) ([]string, error) {
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	if isPlaceholderKey(apiKey) {
 		log.Println("WARNING: GEMINI_API_KEY is not set or is a placeholder. Using mock themes generator.")
-		return GenerateMockThemes(niche), nil
+		return GenerateMockThemes(niche, contentPillar), nil
 	}
 
 	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
@@ -501,11 +542,16 @@ func GenerateContentThemesWithGemini(ctx context.Context, niche string, dateStr 
 	model := client.GenerativeModel("gemini-3.5-flash-lite")
 	model.GenerationConfig.ResponseMIMEType = "application/json"
 
+	pillarNote := ""
+	if contentPillar != "" && contentPillar != "Semua Pilar" {
+		pillarNote = fmt.Sprintf("\n- Sangat disarankan tema mengarah ke pilar konten: \"%s\".", contentPillar)
+	}
+
 	prompt := fmt.Sprintf(`Buat 3 rekomendasi tema/topik konten media sosial yang informatif, edukatif, dan profesional berstandar instansi pemerintah (BLSDM Komdigi) berdasarkan niche: "%s".
  
 Setiap tema harus:
 - Singkat, padat, berupa judul topik/tema konten (maksimal 6-8 kata, tanpa tanda petik, contoh: "Panduan Keamanan Data Pribadi Masyarakat").
-- Relevan dengan edukasi publik dan peningkatan keterampilan digital masyarakat Indonesia.
+- Relevan dengan edukasi publik dan peningkatan keterampilan digital masyarakat Indonesia.%s
 - Secara profesional dihubungkan dengan program/fokus utama dari BLSDM Komdigi (Badan Pengembangan Sumber Daya Manusia Komunikasi dan Digital - Kemenkominfo/Komdigi), seperti program beasiswa pelatihan gratis Digital Talent Scholarship (DTS), kelas literasi digital, beasiswa IT, cybersecurity, digital marketing, AI academy, coding, atau kecakapan digital lainnya.
 
 Jika tanggal "%s" disediakan, sesuaikan tema tersebut agar relevan dengan hari penting/event nasional/internasional pada tanggal tersebut (jika ada).
@@ -515,7 +561,7 @@ Format output harus tepat berupa JSON array of strings:
   "Tema 1",
   "Tema 2",
   "Tema 3"
-]`, niche, dateStr)
+]`, niche, pillarNote, dateStr)
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {

@@ -26,8 +26,9 @@ type Event struct {
 type IdeaItem struct {
 	Title        string `json:"title"`
 	Summary      string `json:"summary"`
-	Format       string `json:"format"`        // "Video Pendek", "Poster", "Infografis", "Carousel", "Reels"
-	ReferenceURL string `json:"reference_url"` // Link contoh konten serupa (YouTube, Instagram, dsb)
+	Format       string `json:"format"`           // "Video Pendek", "Poster", "Infografis", "Carousel", "Reels"
+	ReferenceURL string `json:"reference_url"`    // Link contoh konten serupa (YouTube, Instagram, dsb)
+	Pillar       string `json:"pillar,omitempty"` // Content Pillar: "Entertainment", "Trend", "Education/Information", "Konten Nasional"
 }
 
 type VideoScene struct {

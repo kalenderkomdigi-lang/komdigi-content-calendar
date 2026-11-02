@@ -272,8 +272,22 @@ export default function HistoryPage() {
                               <span className="px-1.5 py-0.2 rounded bg-[#0B2545] text-amber-400 text-[9px] font-extrabold uppercase">
                                 Ide 0{idx + 1}
                               </span>
+                              {idea.pillar && (
+                                <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold border ${
+                                  idea.pillar === 'Entertainment' 
+                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                                    : idea.pillar === 'Trend'
+                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                    : idea.pillar === 'Konten Nasional'
+                                    ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                    : 'bg-blue-50 text-blue-700 border-blue-200'
+                                }`}>
+                                  {idea.pillar === 'Entertainment' ? '🎮 ' : idea.pillar === 'Trend' ? '🚀 ' : idea.pillar === 'Konten Nasional' ? '🇮🇩 ' : '📚 '}
+                                  {idea.pillar}
+                                </span>
+                              )}
                               {idea.format && (
-                                <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
                                   {idea.format}
                                 </span>
                               )}
