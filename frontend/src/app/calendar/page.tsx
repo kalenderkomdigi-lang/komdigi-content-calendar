@@ -997,10 +997,24 @@ export default function CalendarPage() {
                                 href={getAbsoluteUrl(idea.reference_url)}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center space-x-1 text-[10px] font-bold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-2.5 py-1.5 rounded-lg transition"
+                                className={`inline-flex items-center space-x-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition ${
+                                  idea.format?.toLowerCase().includes('carousel') || idea.format?.toLowerCase().includes('poster') || idea.format?.toLowerCase().includes('infografis')
+                                    ? 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200'
+                                    : 'text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200'
+                                }`}
                               >
-                                <Video className="h-3.5 w-3.5 text-teal-600" />
-                                <span>Contoh</span>
+                                {idea.format?.toLowerCase().includes('carousel') || idea.format?.toLowerCase().includes('poster') || idea.format?.toLowerCase().includes('infografis') ? (
+                                  <Layers className="h-3.5 w-3.5" />
+                                ) : (
+                                  <Video className="h-3.5 w-3.5" />
+                                )}
+                                <span>
+                                  {idea.format?.toLowerCase().includes('carousel') ? 'Contoh Carousel' 
+                                    : idea.format?.toLowerCase().includes('poster') || idea.format?.toLowerCase().includes('infografis') ? 'Contoh Desain'
+                                    : idea.format?.toLowerCase().includes('reels') || idea.format?.toLowerCase().includes('tiktok') ? 'Contoh Reels'
+                                    : idea.format?.toLowerCase().includes('motion') ? 'Contoh Motion'
+                                    : 'Contoh Video'}
+                                </span>
                                 <ExternalLink className="h-2.5 w-2.5 opacity-70" />
                               </a>
                             )}

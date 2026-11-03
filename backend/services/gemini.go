@@ -34,7 +34,7 @@ func GenerateMockIdeas(theme string, contentPillar string) []models.IdeaItem {
 			Summary:      "Video publikasi resmi yang mengulas alur pendaftaran dan manfaat pelatihan gratis bidang AI, Coding, serta Digital Marketing dari program DTS BLSDM Komdigi secara terstruktur dan informatif.",
 			Format:       "Reels/TikTok",
 			Pillar:       pillar,
-			ReferenceURL: "https://www.instagram.com/explore/tags/digitaltalentscholarship/",
+			ReferenceURL: "https://www.tiktok.com/tag/digitaltalentscholarship",
 		},
 		{
 			Title:        "Panduan Sertifikasi Standar Nasional IT & Komunikasi 💻",
@@ -108,20 +108,29 @@ Setiap ide harus memiliki:
 - "summary": ringkasan singkat isi konten yang menjelaskan pesan edukatif/informasi publik secara terstruktur, santun, dan mudah dipahami.
 - "format": jenis format konten (pilih salah satu: "Reels/TikTok", "Carousel Instagram", "Video Pendek", "Poster Infografis", "Motion Graphic")
 - "pillar": sebutkan pilar konten ide ini (contoh: "%s", "Entertainment", "Education/Information", "Trend", atau "Konten Nasional")
-- "reference_url": satu link YouTube, TikTok, atau Instagram yang relevan. KETENTUAN UTAMA: Jangan pernah mengarang ID video spesifik (seperti instagram.com/p/random_id atau tiktok.com/@user/video/random_id) karena link tersebut 100%% akan mati/tidak ditemukan. Sebagai gantinya, gunakan URL pencarian tagar/hashtag aktif (seperti https://www.tiktok.com/tag/literasidigital atau https://www.instagram.com/explore/tags/keamanansiber/) ATAU gunakan link pencarian video YouTube yang stabil (seperti https://www.youtube.com/results?search_query=literasi+digital). Link harus selalu valid dan berawalan https://.
+- "reference_url": satu link contoh konten yang SESUAI DENGAN FORMAT-nya. KETENTUAN UTAMA:
+  * Jika format "Carousel Instagram" atau "Poster Infografis": WAJIB gunakan link Instagram explore tags/hashtag (contoh: https://www.instagram.com/explore/tags/literasidigital/) karena carousel dan poster adalah konten gambar/slide di Instagram. JANGAN gunakan link YouTube untuk format ini.
+  * Jika format "Reels/TikTok": gunakan link TikTok tag (contoh: https://www.tiktok.com/tag/literasidigital) atau Instagram Reels explore tags.
+  * Jika format "Video Pendek" atau "Motion Graphic": gunakan link pencarian YouTube (contoh: https://www.youtube.com/results?search_query=literasi+digital).
+  * Jangan pernah mengarang ID video/post spesifik (seperti instagram.com/p/random_id atau tiktok.com/@user/video/random_id) karena link tersebut 100%% akan mati/tidak ditemukan.
+  * Link harus selalu valid dan berawalan https://.
  
 Ketentuan:
 1. Hubungkan secara jelas dengan program/fokus utama dari BLSDM Komdigi (Badan Pengembangan Sumber Daya Manusia Komunikasi dan Digital - Kemenkominfo/Komdigi), seperti program beasiswa pelatihan gratis Digital Talent Scholarship (DTS), kelas literasi digital, beasiswa IT, cybersecurity, digital marketing, AI academy, coding, atau kecakapan digital lainnya. Konten harus mengedukasi masyarakat sekaligus mempublikasikan manfaat peningkatan keterampilan digital bersama BLSDM Komdigi.
 2. Menggunakan Bahasa Indonesia yang baik, benar, baku, formal, ramah, dan profesional sesuai standar penyampaian informasi publik instansi pemerintah. Hindari bahasa gaul, slang, bahasa santai yang tidak resmi, atau istilah Gen Z.
 3. Variasi format: Pastikan ketiga ide memiliki format yang berbeda-beda.
-4. Untuk reference_url, carikan tagar Instagram/TikTok aktif atau pencarian YouTube yang relevan dengan tipe konten ini atau tema "%s". Pastikan link URL ditulis utuh dan valid (selalu gunakan awalan https://).
+4. Untuk reference_url, pastikan link SESUAI DENGAN FORMAT konten:
+   - Carousel Instagram / Poster Infografis -> gunakan tagar Instagram (https://www.instagram.com/explore/tags/...)
+   - Reels/TikTok -> gunakan tagar TikTok (https://www.tiktok.com/tag/...) atau Instagram Reels tags
+   - Video Pendek / Motion Graphic -> gunakan pencarian YouTube (https://www.youtube.com/results?search_query=...)
+   Pastikan link URL ditulis utuh dan valid (selalu gunakan awalan https://).
  
 Format output harus tepat berupa JSON array:
 [
-  {"title": "...", "summary": "...", "format": "Reels/TikTok", "pillar": "%s", "reference_url": "https://...."},
-  {"title": "...", "summary": "...", "format": "Carousel Instagram", "pillar": "%s", "reference_url": "https://...."},
-  {"title": "...", "summary": "...", "format": "Video Pendek", "pillar": "%s", "reference_url": "https://...."}  
-]`, theme, pillarInstruction, samplePillar, theme, samplePillar, samplePillar, samplePillar)
+  {"title": "...", "summary": "...", "format": "Reels/TikTok", "pillar": "%s", "reference_url": "https://www.tiktok.com/tag/...."},
+  {"title": "...", "summary": "...", "format": "Carousel Instagram", "pillar": "%s", "reference_url": "https://www.instagram.com/explore/tags/...."},
+  {"title": "...", "summary": "...", "format": "Video Pendek", "pillar": "%s", "reference_url": "https://www.youtube.com/results?search_query=...."}  
+]`, theme, pillarInstruction, samplePillar, samplePillar, samplePillar, samplePillar)
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
