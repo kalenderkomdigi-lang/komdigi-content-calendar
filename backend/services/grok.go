@@ -59,65 +59,6 @@ func cleanJSONString(s string) string {
 	return strings.TrimSpace(s)
 }
 
-// sanitizeCarouselText cleans video-style terminology from carousel slide content
-// when the AI incorrectly generates video storyboard language for a carousel
-func sanitizeCarouselText(text string) string {
-	// Check if text contains any video-style terms; if not, return as-is
-	lower := strings.ToLower(text)
-	videoTerms := []string{"close-up", "medium shot", "wide shot", "full shot", "b-roll", "zoom-in", "zoom in",
-		"zoom-out", "zoom out", "di studio", "pembawa acara", "voiceover", "voice-over"}
-	hasVideoTerm := false
-	for _, term := range videoTerms {
-		if strings.Contains(lower, term) {
-			hasVideoTerm = true
-			break
-		}
-	}
-	if !hasVideoTerm {
-		return text
-	}
-
-	// Apply replacements (case-insensitive by working on lowercase then reconstructing)
-	r := strings.NewReplacer(
-		"Medium close-up", "Ilustrasi grafis",
-		"medium close-up", "Ilustrasi grafis",
-		"Close-up", "Visual detail",
-		"close-up", "visual detail",
-		"Medium shot", "Tampilan grafis",
-		"medium shot", "tampilan grafis",
-		"Wide shot", "Visual panorama grafis",
-		"wide shot", "visual panorama grafis",
-		"Full shot", "Tampilan visual",
-		"full shot", "tampilan visual",
-		"B-roll", "Ilustrasi pendukung",
-		"b-roll", "ilustrasi pendukung",
-		"B-Roll", "Ilustrasi pendukung",
-		"zoom-in", "fokus visual pada",
-		"Zoom-in", "Fokus visual pada",
-		"zoom in", "fokus visual pada",
-		"Zoom in", "Fokus visual pada",
-		"zoom-out", "tampilan luas",
-		"Zoom-out", "Tampilan luas",
-		"zoom out", "tampilan luas",
-		"Zoom out", "Tampilan luas",
-		"Transisi halus", "Perpindahan slide",
-		"transisi halus", "perpindahan slide",
-		"Transisi smooth", "Perpindahan slide",
-		"transisi smooth", "perpindahan slide",
-		"di studio mini", "dengan latar desain grafis",
-		"di Studio Mini", "dengan latar desain grafis",
-		"di studio", "dengan latar desain grafis",
-		"di Studio", "dengan latar desain grafis",
-		"pembawa acara", "Desain tipografi utama",
-		"Pembawa acara", "Desain tipografi utama",
-		"Pembawa Acara", "Desain tipografi utama",
-		"voiceover", "teks slide",
-		"Voiceover", "Teks slide",
-		"voice-over", "teks slide",
-		"Voice-over", "Teks slide",
-	)
-	return r.Replace(text)
-}
 
 func callGrokAPI(ctx context.Context, messages []GrokMessage, jsonMode bool) (string, error) {
 	apiKey := os.Getenv("GROK_API_KEY")
@@ -337,13 +278,15 @@ func GenerateVideoContent(ctx context.Context, theme string, idea models.IdeaIte
 	var prompt string
 
 	if isCarousel {
-		prompt = fmt.Sprintf(`Kamu adalah Creative Lead dan Perancang Konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
+		prompt = fmt.Sprintf(`Kamu adalah penulis konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
 
-PERINGATAN SANGAT PENTING:
-Konten ini adalah CAROUSEL INSTAGRAM (POSTINGAN SLIDE GAMBAR GESER), BUKAN VIDEO!
-- DILARANG menggunakan istilah video seperti "detik", "kamera", "shot", "studio", "pembawa acara", "presenter", "adegan", atau "voiceover".
-- Setiap slide adalah 1 lembar grafis visual (desain Canva/Photoshop) yang memuat teks copywriting yang dapat dibaca masyarakat.
-- "duration" untuk setiap item WAJIB bernilai nomor slide seperti: "Slide 1 (Cover)", "Slide 2", "Slide 3", "Slide 4", "Slide 5 (CTA)". DILARANG mencantumkan durasi waktu detik!
+Konten ini adalah CAROUSEL INSTAGRAM (slide gambar geser). Setiap slide berisi TEKS KONTEN SAJA:
+- "visual" = Judul/heading singkat topik slide tersebut (contoh: "Kecerdasan Buatan (AI)", "Manfaat Cloud Computing")
+- "narration" = Paragraf penjelasan lengkap isi slide tersebut
+
+DILARANG KERAS:
+- Jangan gunakan istilah kamera, shot, angle, studio, presenter, pembawa acara, adegan, voiceover, detik, tipografi, desain grafis, layout, warna, ilustrasi, icon, atau deskripsi visual/desain apapun.
+- Cukup tulis KONTEN TEKS murni: heading topik dan paragraf penjelasan.
 
 Berdasarkan tema: "%s" dan IDE KONTEN:
 - Judul Ide: "%s"
@@ -351,42 +294,37 @@ Berdasarkan tema: "%s" dan IDE KONTEN:
 - Format: Carousel Instagram (5-7 Slide)
 - Pilar: "%s"
 
-Buatkan 1 RANCANGAN DETAIL SLIDE-BY-SLIDE CAROUSEL INSTAGRAM (5-7 Slide):
-- "title": Judul Carousel (contoh: "Panduan: %s")
+Buatkan konten teks slide-by-slide (5-7 slide):
+- "title": Judul Carousel
 - "format": "Carousel Instagram"
-- "duration": "5-7 Slide (Format Portrait 4:5 / 1080x1350px)"
-- "hook": Teks Headline Besar penarik perhatian di Slide 1 (Cover Hook)
-- "scenes": Array berisi 5-7 slide carousel:
+- "duration": "5-7 Slide"
+- "hook": Headline besar penarik perhatian untuk Cover (Slide 1)
+- "scenes": Array berisi 5-7 slide:
   * Slide 1 (Cover):
     - "scene_number": 1
     - "duration": "Slide 1 (Cover)"
-    - "visual": Deskripsi layout desain grafis cover (warna navy Komdigi #0B2545, tipografi judul besar kontras, ilustrasi/icon utama)
-    - "narration": Teks judul utama & sub-headline yang DICETAK/DITULISKAN di Slide 1
-  * Slide 2 (Konteks / Masalah / Pengantar):
-    - "scene_number": 2
-    - "duration": "Slide 2"
-    - "visual": Layout grafis infografik dengan ikon penjelas
-    - "narration": Teks copywriting slide kedua (penjelasan latar belakang / tantangan masyarakat)
-  * Slide 3, 4, 5 (Isi Materi / Solusi / Langkah Praktis):
-    - "scene_number": 3, 4, dst.
-    - "duration": "Slide 3", "Slide 4", dst.
-    - "visual": Desain diagram visual, cards kotak poin, ilustrasi langkah praktis
-    - "narration": Teks materi edukasi yang ringkas, padat, dan mudah dipahami yang tertulis di slide
-  * Slide Terakhir (Penutup & Call to Action):
+    - "visual": Headline/hook utama carousel (contoh: "INI DIA! 5 Teknologi yang Mengubah Dunia")
+    - "narration": Sama dengan visual atau kosong
+  * Slide 2-N (Isi Materi):
+    - "scene_number": 2, 3, dst.
+    - "duration": "Slide 2", "Slide 3", dst.
+    - "visual": Judul/heading singkat topik slide (contoh: "Kecerdasan Buatan (AI)")
+    - "narration": Paragraf penjelasan lengkap tentang topik tersebut
+  * Slide Terakhir (CTA/Penutup):
     - "scene_number": Terakhir
     - "duration": "Slide Terakhir (CTA)"
-    - "visual": Logo resmi Komdigi RI, visual icon Save & Share, tombol follow
-    - "narration": "Simpan postingan ini agar tidak lupa & bagikan kepada sesama Digiers!"
-- "caption": Caption Instagram lengkap dengan sapaan "Halo Digiers!", pembahasan ringkas materi, ajakan bertindak (CTA), dan kontak resmi.
-- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital #CarouselKomdigi)
-- "music_suggestion": Rekomendasi lagu/audio tren Instagram yang estetik untuk mengiringi Carousel ini
-- "cta": Call to Action penutup di caption
+    - "visual": Heading penutup (contoh: "Simpan & Bagikan!")
+    - "narration": "Simpan postingan ini dan bagikan kepada sesama Digiers! Kunjungi portal resmi BLSDM Komdigi untuk informasi lebih lanjut."
+- "caption": Caption Instagram lengkap dengan sapaan "Halo Digiers!", ringkasan materi, ajakan bertindak (CTA).
+- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital)
+- "music_suggestion": Rekomendasi audio/lagu tren Instagram
+- "cta": Call to Action penutup
 
 Format output harus tepat berupa JSON object:
 {
   "title": "...",
   "format": "Carousel Instagram",
-  "duration": "5 Slide (1080x1350px 4:5)",
+  "duration": "5 Slide",
   "hook": "...",
   "scenes": [
     {"scene_number": 1, "duration": "Slide 1 (Cover)", "visual": "...", "narration": "..."},
@@ -399,7 +337,7 @@ Format output harus tepat berupa JSON object:
   "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
   "music_suggestion": "...",
   "cta": "..."
-}`, theme, idea.Title, idea.Summary, idea.Pillar, idea.Title)
+}`, theme, idea.Title, idea.Summary, idea.Pillar)
 	} else if isPoster {
 		prompt = fmt.Sprintf(`Kamu adalah Graphic Designer dan Creative Director profesional untuk infografis media sosial resmi instansi pemerintah (BLSDM Komdigi).
 
@@ -527,11 +465,7 @@ Format output harus tepat berupa JSON object:
 			} else {
 				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
 			}
-			// Sanitize video-style language from carousel slide content
-			videoContent.Scenes[i].Visual = sanitizeCarouselText(videoContent.Scenes[i].Visual)
-			videoContent.Scenes[i].Narration = sanitizeCarouselText(videoContent.Scenes[i].Narration)
 		}
-		videoContent.Hook = sanitizeCarouselText(videoContent.Hook)
 	} else if isPoster {
 		videoContent.Format = "Poster Infografis"
 		videoContent.Duration = "1 Lembar Poster (1080x1350px)"

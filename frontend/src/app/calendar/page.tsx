@@ -390,24 +390,59 @@ export default function CalendarPage() {
     const isCar = ideaFmt.includes('carousel') || ideaFmt.includes('carrousel');
     const isPost = ideaFmt.includes('poster') || ideaFmt.includes('infografis');
 
-    const headerEmoji = isCar ? '📑' : isPost ? '🖼️' : '🎬';
-    const headerTitle = isCar ? 'RANCANGAN SLIDE CAROUSEL INSTAGRAM' : isPost ? 'RANCANGAN POSTER INFOGRAFIS' : 'NASKAH & STORYBOARD VIDEO PRODUCTION';
-    const hookLabel = isCar ? 'HEADLINE COVER SLIDE 1' : isPost ? 'HEADLINE POSTER' : 'HOOK (3 Detik Pertama)';
-    const breakdownLabel = isCar ? 'ALUR SLIDE-BY-SLIDE' : isPost ? 'STRUKTUR POSTER' : 'STORYBOARD / ALUR SCENE';
-    const itemLabel = isCar ? 'Slide' : isPost ? 'Section' : 'Scene';
-    const visualLabel = isCar ? 'Arahan Desain Visual Slide' : isPost ? 'Layout Visual' : 'Visual';
-    const textLabel = isCar ? 'Teks di Slide' : isPost ? 'Teks Poster' : 'Narasi';
+    let text = '';
 
-    let text = `${headerEmoji} *${headerTitle}*\n`;
-    text += `Judul: ${video.title}\n`;
-    text += `Format: ${video.format} | ${isCar ? 'Spesifikasi' : 'Durasi'}: ${video.duration}\n\n`;
-    text += `📌 *${hookLabel}:*\n"${video.hook}"\n\n`;
-    text += `📋 *${breakdownLabel}:*\n`;
-    video.scenes.forEach((s) => {
-      text += `${itemLabel} ${s.scene_number} [${s.duration}]:\n- ${visualLabel}: ${s.visual}\n- ${textLabel}: "${s.narration}"\n\n`;
-    });
-    text += `🎵 *${isCar ? 'Saran Audio Tren' : 'Saran Musik Latar'}:* ${video.music_suggestion}\n`;
-    text += `📢 *Call to Action:* ${video.cta}\n\n`;
+    if (isCar) {
+      // Simple carousel format matching the user-requested slide layout
+      text += `${video.title}\n\n`;
+      video.scenes.forEach((s, i) => {
+        let heading = s.visual || `Topik ${i + 1}`;
+        let body = s.narration || '';
+        if (i === 0) {
+          const cleanHook = (video.hook || '').replace(/^["']|["']$/g, '').trim();
+          if (cleanHook && cleanHook.length > 0) {
+            heading = cleanHook;
+          }
+          if (body.toLowerCase() === s.visual?.toLowerCase()) {
+            body = '';
+          }
+        } else {
+          heading = heading.replace(/^(Ilustrasi|Visual|Tampilan|Potongan|Transisi|B-roll|Deskripsi)[^:]*:\s*/i, '');
+        }
+        body = body.replace(/^(Naskah narasi|Teks slide|Teks yang ditulis|Narasi)[^:]*:\s*/i, '').replace(/^["']|["']$/g, '');
+
+        text += `Slide ${i + 1}\n`;
+        text += `${heading}\n`;
+        if (body && body.toLowerCase() !== heading.toLowerCase()) {
+          text += `${body}\n`;
+        }
+        text += `\n`;
+      });
+      const refUrl = generatedIdeas[index]?.reference_url;
+      if (refUrl) {
+        text += `Sumber :\n${refUrl}\n`;
+      }
+    } else {
+      const headerEmoji = isPost ? '🖼️' : '🎬';
+      const headerTitle = isPost ? 'RANCANGAN POSTER INFOGRAFIS' : 'NASKAH & STORYBOARD VIDEO PRODUCTION';
+      const hookLabel = isPost ? 'HEADLINE POSTER' : 'HOOK (3 Detik Pertama)';
+      const breakdownLabel = isPost ? 'STRUKTUR POSTER' : 'STORYBOARD / ALUR SCENE';
+      const itemLabel = isPost ? 'Section' : 'Scene';
+      const visualLabel = isPost ? 'Layout Visual' : 'Visual';
+      const textLabel = isPost ? 'Teks Poster' : 'Narasi';
+
+      text += `${headerEmoji} *${headerTitle}*\n`;
+      text += `Judul: ${video.title}\n`;
+      text += `Format: ${video.format} | Durasi: ${video.duration}\n\n`;
+      text += `📌 *${hookLabel}:*\n"${video.hook}"\n\n`;
+      text += `📋 *${breakdownLabel}:*\n`;
+      video.scenes.forEach((s) => {
+        text += `${itemLabel} ${s.scene_number} [${s.duration}]:\n- ${visualLabel}: ${s.visual}\n- ${textLabel}: "${s.narration}"\n\n`;
+      });
+      text += `🎵 *Saran Musik Latar:* ${video.music_suggestion}\n`;
+    }
+
+    text += `\n📢 *Call to Action:* ${video.cta}\n\n`;
     text += `📝 *Caption Pendukung:*\n${video.caption}\n\n`;
     text += `🏷️ ${video.hashtags ? video.hashtags.join(' ') : ''}`;
 
@@ -1138,61 +1173,113 @@ export default function CalendarPage() {
                                 {generatedVideos[idx].title}
                               </h6>
 
-                              {/* Hook */}
-                              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                                <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">
-                                  {isCar ? 'Headline Cover Slide 1 (Hook Pemikat)' : isPost ? 'Headline Utama Poster' : 'Hook (3 Detik Pertama)'}
-                                </span>
-                                <p className="text-xs text-slate-800 leading-relaxed font-semibold italic">
-                                  &ldquo;{generatedVideos[idx].hook}&rdquo;
-                                </p>
-                              </div>
+                              {isCar ? (
+                                <>
+                                  {/* Carousel: Simple slide-by-slide text content */}
+                                  <div className="space-y-3">
+                                    {generatedVideos[idx].scenes.map((scene, sIdx) => {
+                                      let slideHeading = scene.visual || `Topik ${sIdx + 1}`;
+                                      let slideBody = scene.narration || '';
 
-                              {/* Storyboard / Slide breakdown */}
-                              <div className="space-y-2">
-                                <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
-                                  {isCar ? `Alur Slide-by-Slide (${generatedVideos[idx].scenes.length} Slide)` : isPost ? 'Struktur Bagian Poster Infografis' : 'Storyboard Adegan Video'}
-                                </span>
-                                {generatedVideos[idx].scenes.map((scene, sIdx) => (
-                                  <div key={sIdx} className="flex gap-2 bg-white p-2.5 rounded-lg border border-slate-200 text-xs">
-                                    <div className={`h-5 w-5 rounded-full text-[9px] font-extrabold flex items-center justify-center shrink-0 mt-0.5 ${
-                                      isCar ? 'bg-indigo-900 text-amber-300' : isPost ? 'bg-blue-900 text-blue-200' : 'bg-[#0B2545] text-amber-400'
-                                    }`}>
-                                      {scene.scene_number}
-                                    </div>
-                                    <div className="space-y-0.5 leading-relaxed">
-                                      <span className="text-[9px] font-bold text-slate-500 uppercase">
-                                        {isCar
-                                          ? (scene.duration?.toLowerCase().includes('slide') ? scene.duration : sIdx === 0 ? 'Slide 1 (Cover)' : sIdx === generatedVideos[idx].scenes.length - 1 ? `Slide ${sIdx + 1} (CTA)` : `Slide ${sIdx + 1}`)
-                                          : isPost
-                                          ? (scene.duration || `Bagian ${scene.scene_number}`)
-                                          : (scene.duration || `Scene ${scene.scene_number}`)}
-                                      </span>
-                                      <p className="text-slate-800">
-                                        <strong className={isCar ? 'text-indigo-900' : isPost ? 'text-blue-900' : 'text-[#0B2545]'}>
-                                          {isCar ? 'Arahan Visual Desain Slide:' : isPost ? 'Layout & Visual Grafis:' : 'Visual Kamera:'}
-                                        </strong> {scene.visual}
-                                      </p>
-                                      <p className="text-slate-700">
-                                        <strong className="text-slate-900">
-                                          {isCar ? 'Teks yang Ditulis di Slide:' : isPost ? 'Teks Konten Poster:' : 'Naskah Narasi:'}
-                                        </strong> &ldquo;{scene.narration}&rdquo;
-                                      </p>
-                                    </div>
+                                      // If it's slide 1 (Cover)
+                                      if (sIdx === 0) {
+                                        const cleanHook = (generatedVideos[idx].hook || '').replace(/^["']|["']$/g, '').trim();
+                                        if (cleanHook && cleanHook.length > 0) {
+                                          slideHeading = cleanHook;
+                                        } else if (slideHeading.toLowerCase().includes('host') || slideHeading.toLowerCase().includes('studio') || slideHeading.length > 70) {
+                                          slideHeading = `INI DIA! ${idea.title || 'Informasi Publik'}`;
+                                        }
+                                        if (slideBody.toLowerCase() === scene.visual?.toLowerCase()) {
+                                          slideBody = '';
+                                        }
+                                      } else {
+                                        // Clean up any lingering video-style prefixes
+                                        slideHeading = slideHeading.replace(/^(Ilustrasi|Visual|Tampilan|Potongan|Transisi|B-roll|Deskripsi)[^:]*:\s*/i, '');
+                                      }
+
+                                      slideBody = slideBody.replace(/^(Naskah narasi|Teks slide|Teks yang ditulis|Narasi)[^:]*:\s*/i, '').replace(/^["']|["']$/g, '');
+
+                                      return (
+                                        <div key={sIdx} className="bg-white p-3.5 rounded-lg border border-slate-200">
+                                          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-1">
+                                            Slide {sIdx + 1}
+                                          </span>
+                                          <h6 className="text-xs font-bold text-[#0B2545] leading-snug">
+                                            {slideHeading}
+                                          </h6>
+                                          {slideBody && slideBody.toLowerCase() !== slideHeading.toLowerCase() && (
+                                            <p className="text-xs text-slate-600 mt-1.5 leading-relaxed whitespace-pre-line">
+                                              {slideBody}
+                                            </p>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                   </div>
-                                ))}
-                              </div>
 
-                              {/* Suggested Music */}
-                              <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs">
-                                <div className="flex items-center space-x-1.5 mb-0.5">
-                                  <Music className="h-3.5 w-3.5 text-blue-700" />
-                                  <span className="text-[9px] font-extrabold text-blue-800 uppercase tracking-wider">
-                                    {isCar ? 'Saran Audio / Lagu Tren Instagram' : isPost ? 'Saran Musik Latar Feed' : 'Saran Audio Latar'}
-                                  </span>
-                                </div>
-                                <p className="text-slate-700 font-medium">{generatedVideos[idx].music_suggestion}</p>
-                              </div>
+                                  {/* Sumber */}
+                                  {idea.reference_url && (
+                                    <div className="pt-2.5 border-t border-slate-200 text-xs">
+                                      <span className="font-bold text-slate-500 block mb-0.5">Sumber :</span>
+                                      <a href={getAbsoluteUrl(idea.reference_url)} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:text-indigo-800 underline break-all">
+                                        {idea.reference_url}
+                                      </a>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  {/* Video/Poster: Hook section */}
+                                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                                    <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">
+                                      {isPost ? 'Headline Utama Poster' : 'Hook (3 Detik Pertama)'}
+                                    </span>
+                                    <p className="text-xs text-slate-800 leading-relaxed font-semibold italic">
+                                      &ldquo;{generatedVideos[idx].hook}&rdquo;
+                                    </p>
+                                  </div>
+
+                                  {/* Video/Poster: Scene breakdown */}
+                                  <div className="space-y-2">
+                                    <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                                      {isPost ? 'Struktur Bagian Poster Infografis' : 'Storyboard Adegan Video'}
+                                    </span>
+                                    {generatedVideos[idx].scenes.map((scene, sIdx) => (
+                                      <div key={sIdx} className="flex gap-2 bg-white p-2.5 rounded-lg border border-slate-200 text-xs">
+                                        <div className={`h-5 w-5 rounded-full text-[9px] font-extrabold flex items-center justify-center shrink-0 mt-0.5 ${isPost ? 'bg-blue-900 text-blue-200' : 'bg-[#0B2545] text-amber-400'}`}>
+                                          {scene.scene_number}
+                                        </div>
+                                        <div className="space-y-0.5 leading-relaxed">
+                                          <span className="text-[9px] font-bold text-slate-500 uppercase">
+                                            {scene.duration || (isPost ? `Bagian ${scene.scene_number}` : `Scene ${scene.scene_number}`)}
+                                          </span>
+                                          <p className="text-slate-800">
+                                            <strong className={isPost ? 'text-blue-900' : 'text-[#0B2545]'}>
+                                              {isPost ? 'Layout & Visual Grafis:' : 'Visual Kamera:'}
+                                            </strong> {scene.visual}
+                                          </p>
+                                          <p className="text-slate-700">
+                                            <strong className="text-slate-900">
+                                              {isPost ? 'Teks Konten Poster:' : 'Naskah Narasi:'}
+                                            </strong> &ldquo;{scene.narration}&rdquo;
+                                          </p>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  {/* Suggested Music */}
+                                  <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs">
+                                    <div className="flex items-center space-x-1.5 mb-0.5">
+                                      <Music className="h-3.5 w-3.5 text-blue-700" />
+                                      <span className="text-[9px] font-extrabold text-blue-800 uppercase tracking-wider">
+                                        {isPost ? 'Saran Musik Latar Feed' : 'Saran Audio Latar'}
+                                      </span>
+                                    </div>
+                                    <p className="text-slate-700 font-medium">{generatedVideos[idx].music_suggestion}</p>
+                                  </div>
+                                </>
+                              )}
 
                               {/* CTA */}
                               <div className="p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs">

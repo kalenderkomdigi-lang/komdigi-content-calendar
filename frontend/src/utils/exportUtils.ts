@@ -179,93 +179,166 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
   const specLabel = isCarousel ? 'Detail Spesifikasi Carousel' : isPoster ? 'Detail Spesifikasi Poster' : 'Detail Spesifikasi Video';
   const hookLabel = isCarousel ? 'Headline Cover Slide 1' : isPoster ? 'Headline Utama Poster' : 'Hook (3 Detik Pertama)';
   const musicLabel = isCarousel ? 'Saran Audio Tren Instagram' : isPoster ? 'Saran Musik Latar Feed' : 'Saran Musik Latar';
-  const tableTitle = isCarousel ? 'ALUR SLIDE CAROUSEL' : isPoster ? 'BAGIAN POSTER INFOGRAFIS' : 'ALUR SCENE STORYBOARD';
+  const tableTitle = isCarousel ? 'KONTEN SLIDE CAROUSEL' : isPoster ? 'BAGIAN POSTER INFOGRAFIS' : 'ALUR SCENE STORYBOARD';
 
   addPDFHeader(doc, docTitle, `Topik: "${theme}" | Format: ${video.format} | ${video.duration}`);
 
   let currentY = 48;
 
-  // Metadata Table Box
-  const metaData = [
-    [isCarousel ? 'Judul Carousel' : isPoster ? 'Judul Poster' : 'Judul Video', video.title || '-'],
-    ['Format Konten', video.format || '-'],
-    ['Spesifikasi / Durasi', video.duration || '-'],
-    [hookLabel, `"${video.hook || '-'}"`],
-    [musicLabel, video.music_suggestion || '-'],
-    ['Call to Action (CTA)', video.cta || '-']
-  ];
+  if (isCarousel) {
+    // Carousel: Simple metadata (no hook/music rows in metadata table)
+    const metaData = [
+      ['Judul Carousel', video.title || '-'],
+      ['Format Konten', video.format || '-'],
+      ['Jumlah Slide', video.duration || '-'],
+      ['Call to Action (CTA)', video.cta || '-']
+    ];
 
-  autoTable(doc, {
-    startY: currentY,
-    head: [['Parameter', specLabel]],
-    body: metaData,
-    theme: 'grid',
-    headStyles: {
-      fillColor: isCarousel ? [67, 56, 202] : [79, 70, 229],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 9
-    },
-    bodyStyles: {
-      fontSize: 8.5,
-      textColor: [51, 65, 85],
-      cellPadding: 3.5
-    },
-    columnStyles: {
-      0: { cellWidth: 45, fontStyle: 'bold', fillColor: [241, 245, 249] },
-      1: { cellWidth: 140 }
-    }
-  });
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Parameter', 'Detail']],
+      body: metaData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [67, 56, 202],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8.5,
+        textColor: [51, 65, 85],
+        cellPadding: 3.5
+      },
+      columnStyles: {
+        0: { cellWidth: 45, fontStyle: 'bold', fillColor: [241, 245, 249] },
+        1: { cellWidth: 140 }
+      }
+    });
 
-  currentY = (doc as any).lastAutoTable.finalY + 8;
+    currentY = (doc as any).lastAutoTable.finalY + 8;
 
-  // Storyboard / Slide Scenes Table
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(30, 41, 59);
-  doc.text(tableTitle, 14, currentY);
+    // Carousel Slide Content Table: Slide # | Judul Slide | Teks Konten
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(30, 41, 59);
+    doc.text(tableTitle, 14, currentY);
+    currentY += 4;
 
-  currentY += 4;
+    const slideRows = (video.scenes || []).map((scene) => [
+      `Slide ${scene.scene_number}`,
+      scene.visual || '-',
+      scene.narration && scene.narration.toLowerCase() !== scene.visual?.toLowerCase() ? scene.narration : '-'
+    ]);
 
-  const col1Name = isCarousel ? 'Slide' : isPoster ? 'Section' : 'Scene';
-  const col2Name = isCarousel ? 'Posisi' : isPoster ? 'Bagian' : 'Durasi';
-  const col3Name = isCarousel ? 'Arahan Visual Desain Slide' : isPoster ? 'Deskripsi Layout & Visual' : 'Deskripsi Visual & Camera Shot';
-  const col4Name = isCarousel ? 'Copywriting / Teks yang Ditulis di Slide' : isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Slide', 'Judul / Heading Slide', 'Teks Konten Slide']],
+      body: slideRows,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [49, 46, 129],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [51, 65, 85],
+        cellPadding: 4
+      },
+      columnStyles: {
+        0: { cellWidth: 22, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 50, fontStyle: 'bold' },
+        2: { cellWidth: 113 }
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      }
+    });
+  } else {
+    // Video/Poster: Full metadata table
+    const metaData = [
+      [isPoster ? 'Judul Poster' : 'Judul Video', video.title || '-'],
+      ['Format Konten', video.format || '-'],
+      ['Spesifikasi / Durasi', video.duration || '-'],
+      [hookLabel, `"${video.hook || '-'}"`],
+      [musicLabel, video.music_suggestion || '-'],
+      ['Call to Action (CTA)', video.cta || '-']
+    ];
 
-  const sceneRows = (video.scenes || []).map((scene) => [
-    `${col1Name} ${scene.scene_number}`,
-    scene.duration || '-',
-    scene.visual || '-',
-    `"${scene.narration || '-'}"`
-  ]);
+    autoTable(doc, {
+      startY: currentY,
+      head: [['Parameter', specLabel]],
+      body: metaData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [79, 70, 229],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 9
+      },
+      bodyStyles: {
+        fontSize: 8.5,
+        textColor: [51, 65, 85],
+        cellPadding: 3.5
+      },
+      columnStyles: {
+        0: { cellWidth: 45, fontStyle: 'bold', fillColor: [241, 245, 249] },
+        1: { cellWidth: 140 }
+      }
+    });
 
-  autoTable(doc, {
-    startY: currentY,
-    head: [[col1Name, col2Name, col3Name, col4Name]],
-    body: sceneRows,
-    theme: 'grid',
-    headStyles: {
-      fillColor: isCarousel ? [49, 46, 129] : [30, 41, 59],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      fontSize: 8.5,
-      halign: 'center'
-    },
-    bodyStyles: {
-      fontSize: 8,
-      textColor: [51, 65, 85],
-      cellPadding: 4
-    },
-    columnStyles: {
-      0: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 26, halign: 'center' },
-      2: { cellWidth: 67 },
-      3: { cellWidth: 72, fontStyle: 'italic' }
-    },
-    alternateRowStyles: {
-      fillColor: [248, 250, 252]
-    }
-  });
+    currentY = (doc as any).lastAutoTable.finalY + 8;
+
+    // Scene Table
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.setTextColor(30, 41, 59);
+    doc.text(tableTitle, 14, currentY);
+    currentY += 4;
+
+    const col1Name = isPoster ? 'Section' : 'Scene';
+    const col2Name = isPoster ? 'Bagian' : 'Durasi';
+    const col3Name = isPoster ? 'Deskripsi Layout & Visual' : 'Deskripsi Visual & Camera Shot';
+    const col4Name = isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
+
+    const sceneRows = (video.scenes || []).map((scene) => [
+      `${col1Name} ${scene.scene_number}`,
+      scene.duration || '-',
+      scene.visual || '-',
+      `"${scene.narration || '-'}"`
+    ]);
+
+    autoTable(doc, {
+      startY: currentY,
+      head: [[col1Name, col2Name, col3Name, col4Name]],
+      body: sceneRows,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [30, 41, 59],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 8.5,
+        halign: 'center'
+      },
+      bodyStyles: {
+        fontSize: 8,
+        textColor: [51, 65, 85],
+        cellPadding: 4
+      },
+      columnStyles: {
+        0: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
+        1: { cellWidth: 26, halign: 'center' },
+        2: { cellWidth: 67 },
+        3: { cellWidth: 72, fontStyle: 'italic' }
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      }
+    });
+  }
 
   currentY = (doc as any).lastAutoTable.finalY + 8;
 
@@ -315,12 +388,19 @@ export const exportStoryboardToExcel = (theme: string, video: VideoContent) => {
   const isPoster = video.format?.toLowerCase().includes('poster') || video.format?.toLowerCase().includes('infografis');
 
   // Sheet 1: Konsep & Metadata
-  const metaRows = [
-    { 'Parameter': isCarousel ? 'Judul Carousel' : isPoster ? 'Judul Poster' : 'Judul Video', 'Detail': video.title },
+  const metaRows = isCarousel ? [
+    { 'Parameter': 'Judul Carousel', 'Detail': video.title },
+    { 'Parameter': 'Format Konten', 'Detail': video.format },
+    { 'Parameter': 'Jumlah Slide', 'Detail': video.duration },
+    { 'Parameter': 'Call to Action (CTA)', 'Detail': video.cta },
+    { 'Parameter': 'Caption', 'Detail': video.caption },
+    { 'Parameter': 'Hashtags', 'Detail': (video.hashtags || []).join(' ') }
+  ] : [
+    { 'Parameter': isPoster ? 'Judul Poster' : 'Judul Video', 'Detail': video.title },
     { 'Parameter': 'Format Konten', 'Detail': video.format },
     { 'Parameter': 'Spesifikasi / Durasi', 'Detail': video.duration },
-    { 'Parameter': isCarousel ? 'Headline Cover Slide 1' : isPoster ? 'Headline Poster' : 'Hook (3 Detik Pertama)', 'Detail': video.hook },
-    { 'Parameter': isCarousel ? 'Saran Audio Tren' : 'Saran Musik Latar', 'Detail': video.music_suggestion },
+    { 'Parameter': isPoster ? 'Headline Poster' : 'Hook (3 Detik Pertama)', 'Detail': video.hook },
+    { 'Parameter': 'Saran Musik Latar', 'Detail': video.music_suggestion },
     { 'Parameter': 'Call to Action (CTA)', 'Detail': video.cta },
     { 'Parameter': 'Caption', 'Detail': video.caption },
     { 'Parameter': 'Hashtags', 'Detail': (video.hashtags || []).join(' ') }
@@ -331,24 +411,24 @@ export const exportStoryboardToExcel = (theme: string, video: VideoContent) => {
 
   // Sheet 2: Breakdown Slides / Scenes
   const col1Name = isCarousel ? 'Slide #' : isPoster ? 'Section #' : 'Scene #';
-  const col2Name = isCarousel ? 'Posisi Slide' : isPoster ? 'Bagian Poster' : 'Durasi';
-  const col3Name = isCarousel ? 'Arahan Desain Visual Slide' : isPoster ? 'Layout Desain Visual' : 'Deskripsi Visual & Shot';
-  const col4Name = isCarousel ? 'Teks yang Ditulis di Slide' : isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
+  const col2Name = isCarousel ? 'Nomor Slide' : isPoster ? 'Bagian Poster' : 'Durasi';
+  const col3Name = isCarousel ? 'Judul / Topik Slide' : isPoster ? 'Layout Desain Visual' : 'Deskripsi Visual & Shot';
+  const col4Name = isCarousel ? 'Teks Penjelasan Slide' : isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
 
   const sceneRows = (video.scenes || []).map((scene) => ({
-    [col1Name]: scene.scene_number,
-    [col2Name]: scene.duration,
+    [col1Name]: `Slide ${scene.scene_number}`,
+    [col2Name]: scene.duration || `Slide ${scene.scene_number}`,
     [col3Name]: scene.visual,
-    [col4Name]: scene.narration
+    [col4Name]: scene.narration && scene.narration.toLowerCase() !== scene.visual?.toLowerCase() ? scene.narration : '-'
   }));
   const sceneSheet = XLSX.utils.json_to_sheet(sceneRows);
   sceneSheet['!cols'] = [
-    { wch: 10 },
-    { wch: 20 },
-    { wch: 55 },
-    { wch: 65 }
+    { wch: 12 },
+    { wch: 18 },
+    { wch: 45 },
+    { wch: 75 }
   ];
-  XLSX.utils.book_append_sheet(workbook, sceneSheet, isCarousel ? 'Alur Slide' : isPoster ? 'Struktur Poster' : 'Storyboard Scenes');
+  XLSX.utils.book_append_sheet(workbook, sceneSheet, isCarousel ? 'Konten Slide' : isPoster ? 'Struktur Poster' : 'Storyboard Scenes');
 
   const filePrefix = isCarousel ? 'Carousel' : isPoster ? 'Poster' : 'Storyboard';
   XLSX.writeFile(workbook, `${filePrefix}_${sanitizeFilename(video.title || theme)}.xlsx`);

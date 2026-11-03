@@ -356,45 +356,45 @@ func GenerateMockVideoContent(theme string, idea models.IdeaItem) models.VideoCo
 	fmtLower := strings.ToLower(idea.Format)
 	if strings.Contains(fmtLower, "carousel") {
 		return models.VideoContent{
-			Title:    fmt.Sprintf("Konsep Slide Carousel: %s 📑", ideaTitle),
+			Title:    fmt.Sprintf("%s", ideaTitle),
 			Format:   "Carousel Instagram",
-			Duration: "5 Slide (1080x1350px 4:5)",
-			Hook:     fmt.Sprintf("\"Kenali Pentingnya %s dalam 5 Menit! Geser untuk Pelajari Lebih Lanjut 👉\" 🏛️", theme),
+			Duration: "5 Slide",
+			Hook:     fmt.Sprintf("INI DIA! Panduan Lengkap Seputar %s", theme),
 			Scenes: []models.VideoScene{
 				{
 					SceneNumber: 1,
-					Visual:      "Cover bergaya modern minimalis, latar warna navy Komdigi #0B2545 dengan tipografi judul kontras putih dan aksen emas. Terdapat logo resmi Komdigi RI.",
-					Narration:   fmt.Sprintf("PANDUAN LENGKAP: %s (Geser ke Kiri 👉)", ideaTitle),
+					Visual:      fmt.Sprintf("INI DIA! %s", ideaTitle),
+					Narration:   fmt.Sprintf("Geser ke kiri untuk mempelajari poin-poin penting seputar %s 👉", theme),
 					Duration:    "Slide 1 (Cover)",
 				},
 				{
 					SceneNumber: 2,
-					Visual:      "Ilustrasi vektor grafis dan bagan perbandingan yang menggambarkan latar belakang serta tantangan masyarakat.",
-					Narration:   "Di era transformasi digital saat ini, memahami kecakapan digital bukan lagi pilihan, melainkan kebutuhan mendesak untuk melindungi diri dan produktif.",
-					Duration:    "Slide 2 (Konteks)",
+					Visual:      "Pentingnya Kecakapan Digital di Era Modern",
+					Narration:   "Di era transformasi saat ini, pemahaman terhadap teknologi bukan lagi pilihan, melainkan kebutuhan mendasar. Dengan literasi digital yang baik, masyarakat dapat lebih produktif, aman dari kejahatan siber, serta mampu beradaptasi dengan perubahan industri secara optimal.",
+					Duration:    "Slide 2",
 				},
 				{
 					SceneNumber: 3,
-					Visual:      "Tampilan card infografis 3 poin utama dengan bullet point terstruktur dan icon penjelas.",
-					Narration:   "3 Langkah Kunci: 1) Verifikasi sumber informasi, 2) Amankan akun dengan 2FA, 3) Ikuti pelatihan peningkatan skill resmi.",
-					Duration:    "Slide 3 (Solusi)",
+					Visual:      "Pemanfaatan Teknologi untuk Efisiensi & Kemudahan",
+					Narration:   "Teknologi digital seperti cloud computing, otomatisasi, dan Internet of Things (IoT) saling terhubung untuk menciptakan ekosistem yang lebih cerdas. Hal ini memungkinkan pengelolaan data secara real-time, pengurangan kesalahan manual, dan peningkatan efisiensi layanan publik.",
+					Duration:    "Slide 3",
 				},
 				{
 					SceneNumber: 4,
-					Visual:      "Bagan roadmap alur pendaftaran program pelatihan Digital Talent Scholarship (DTS) dari BLSDM Komdigi.",
-					Narration:   "BLSDM Komdigi memfasilitasi pelatihan dan sertifikasi kompetensi gratis berstandar industri bagi seluruh masyarakat Indonesia.",
-					Duration:    "Slide 4 (Fasilitas)",
+					Visual:      "Peningkatan Keterampilan Bersama BLSDM Komdigi",
+					Narration:   "Kementerian Komunikasi dan Digital melalui BLSDM menyediakan berbagai program pelatihan dan beasiswa Digital Talent Scholarship (DTS) berstandar industri. Program ini dirancang untuk mencetak talenta digital Indonesia yang kompeten dan siap kerja.",
+					Duration:    "Slide 4",
 				},
 				{
 					SceneNumber: 5,
-					Visual:      "Slide penutup dengan logo Komdigi RI, visual icon Save, Share, dan tombol Follow akun resmi.",
-					Narration:   "Simpan (Save) postingan ini agar tidak lupa & bagikan kepada teman atau keluargamu. Kunjungi website DTS untuk informasi pendaftaran!",
+					Visual:      "Simpan & Bagikan Informasi Ini!",
+					Narration:   "Simpan (Save) postingan ini agar tidak lupa dan bagikan ke teman atau rekan kerjamu. Kunjungi website resmi digitaltalent.komdigi.go.id untuk info pendaftaran program pelatihan gratis!",
 					Duration:    "Slide 5 (CTA)",
 				},
 			},
-			Caption:         fmt.Sprintf("🏛️ [PANDUAN CAROUSEL BLSDM KOMDIGI: %s] 🏛️\n\nHalo Digiers! Geser slide di atas untuk mengetahui langkah-langkah praktis seputar %s. Jangan lupa simpan postingan ini ya! ✨", theme, theme),
-			Hashtags:        []string{"#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital", "#InfografisKomdigi"},
-			MusicSuggestion: "Audio tren Instagram berirama tenang dan elegan.",
+			Caption:         fmt.Sprintf("🏛️ [%s] 🏛️\n\nHalo Digiers! Geser slide di atas untuk menyimak rangkuman lengkap mengenai %s. Jangan lupa simpan postingan ini ya! ✨", ideaTitle, theme),
+			Hashtags:        []string{"#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"},
+			MusicSuggestion: "Audio tren Instagram yang tenang dan elegan",
 			CTA:             "Simpan postingan ini & kunjungi portal resmi BLSDM Komdigi! 💻",
 		}
 	} else if strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis") {
@@ -491,13 +491,15 @@ func GenerateVideoContentWithGemini(ctx context.Context, theme string, idea mode
 	var prompt string
 
 	if isCarousel {
-		prompt = fmt.Sprintf(`Kamu adalah Creative Lead dan Perancang Konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
+		prompt = fmt.Sprintf(`Kamu adalah penulis konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
 
-PERINGATAN SANGAT PENTING:
-Konten ini adalah CAROUSEL INSTAGRAM (POSTINGAN SLIDE GAMBAR GESER), BUKAN VIDEO!
-- DILARANG menggunakan istilah video seperti "detik", "kamera", "shot", "studio", "pembawa acara", "presenter", "adegan", atau "voiceover".
-- Setiap slide adalah 1 lembar grafis visual (desain Canva/Photoshop) yang memuat teks copywriting yang dapat dibaca masyarakat.
-- "duration" untuk setiap item WAJIB bernilai nomor slide seperti: "Slide 1 (Cover)", "Slide 2", "Slide 3", "Slide 4", "Slide 5 (CTA)". DILARANG mencantumkan durasi waktu detik!
+Konten ini adalah CAROUSEL INSTAGRAM (slide gambar geser). Setiap slide berisi TEKS KONTEN SAJA:
+- "visual" = Judul/heading singkat topik slide tersebut (contoh: "Kecerdasan Buatan (AI)", "Manfaat Cloud Computing")
+- "narration" = Paragraf penjelasan lengkap isi slide tersebut
+
+DILARANG KERAS:
+- Jangan gunakan istilah kamera, shot, angle, studio, presenter, pembawa acara, adegan, voiceover, detik, tipografi, desain grafis, layout, warna, ilustrasi, icon, atau deskripsi visual/desain apapun.
+- Cukup tulis KONTEN TEKS murni: heading topik dan paragraf penjelasan.
 
 Berdasarkan tema: "%s" dan IDE KONTEN:
 - Judul Ide: "%s"
@@ -505,42 +507,37 @@ Berdasarkan tema: "%s" dan IDE KONTEN:
 - Format: Carousel Instagram (5-7 Slide)
 - Pilar: "%s"
 
-Buatkan 1 RANCANGAN DETAIL SLIDE-BY-SLIDE CAROUSEL INSTAGRAM (5-7 Slide):
-- "title": Judul Carousel (contoh: "Panduan: %s")
+Buatkan konten teks slide-by-slide (5-7 slide):
+- "title": Judul Carousel
 - "format": "Carousel Instagram"
-- "duration": "5-7 Slide (Format Portrait 4:5 / 1080x1350px)"
-- "hook": Teks Headline Besar penarik perhatian di Slide 1 (Cover Hook)
-- "scenes": Array berisi 5-7 slide carousel:
+- "duration": "5-7 Slide"
+- "hook": Headline besar penarik perhatian untuk Cover (Slide 1)
+- "scenes": Array berisi 5-7 slide:
   * Slide 1 (Cover):
     - "scene_number": 1
     - "duration": "Slide 1 (Cover)"
-    - "visual": Deskripsi layout desain grafis cover (warna navy Komdigi #0B2545, tipografi judul besar kontras, ilustrasi/icon utama)
-    - "narration": Teks judul utama & sub-headline yang DICETAK/DITULISKAN di Slide 1
-  * Slide 2 (Konteks / Masalah / Pengantar):
-    - "scene_number": 2
-    - "duration": "Slide 2"
-    - "visual": Layout grafis infografik dengan ikon penjelas
-    - "narration": Teks copywriting slide kedua (penjelasan latar belakang / tantangan masyarakat)
-  * Slide 3, 4, 5 (Isi Materi / Solusi / Langkah Praktis):
-    - "scene_number": 3, 4, dst.
-    - "duration": "Slide 3", "Slide 4", dst.
-    - "visual": Desain diagram visual, cards kotak poin, ilustrasi langkah praktis
-    - "narration": Teks materi edukasi yang ringkas, padat, dan mudah dipahami yang tertulis di slide
-  * Slide Terakhir (Penutup & Call to Action):
+    - "visual": Headline/hook utama carousel (contoh: "INI DIA! 5 Teknologi yang Mengubah Dunia")
+    - "narration": Sama dengan visual atau kosong
+  * Slide 2-N (Isi Materi):
+    - "scene_number": 2, 3, dst.
+    - "duration": "Slide 2", "Slide 3", dst.
+    - "visual": Judul/heading singkat topik slide (contoh: "Kecerdasan Buatan (AI)")
+    - "narration": Paragraf penjelasan lengkap tentang topik tersebut
+  * Slide Terakhir (CTA/Penutup):
     - "scene_number": Terakhir
     - "duration": "Slide Terakhir (CTA)"
-    - "visual": Logo resmi Komdigi RI, visual icon Save & Share, tombol follow
-    - "narration": "Simpan postingan ini agar tidak lupa & bagikan kepada sesama Digiers!"
-- "caption": Caption Instagram lengkap dengan sapaan "Halo Digiers!", pembahasan ringkas materi, ajakan bertindak (CTA), dan kontak resmi.
-- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital #CarouselKomdigi)
-- "music_suggestion": Rekomendasi lagu/audio tren Instagram yang estetik untuk mengiringi Carousel ini
-- "cta": Call to Action penutup di caption
+    - "visual": Heading penutup (contoh: "Simpan & Bagikan!")
+    - "narration": "Simpan postingan ini dan bagikan kepada sesama Digiers! Kunjungi portal resmi BLSDM Komdigi untuk informasi lebih lanjut."
+- "caption": Caption Instagram lengkap dengan sapaan "Halo Digiers!", ringkasan materi, ajakan bertindak (CTA).
+- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital)
+- "music_suggestion": Rekomendasi audio/lagu tren Instagram
+- "cta": Call to Action penutup
 
 Format output harus tepat berupa JSON object:
 {
   "title": "...",
   "format": "Carousel Instagram",
-  "duration": "5 Slide (1080x1350px 4:5)",
+  "duration": "5 Slide",
   "hook": "...",
   "scenes": [
     {"scene_number": 1, "duration": "Slide 1 (Cover)", "visual": "...", "narration": "..."},
@@ -553,7 +550,7 @@ Format output harus tepat berupa JSON object:
   "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
   "music_suggestion": "...",
   "cta": "..."
-}`, theme, idea.Title, idea.Summary, idea.Pillar, idea.Title)
+}`, theme, idea.Title, idea.Summary, idea.Pillar)
 	} else if isPoster {
 		prompt = fmt.Sprintf(`Kamu adalah Graphic Designer dan Creative Director profesional untuk infografis media sosial resmi instansi pemerintah (BLSDM Komdigi).
 
@@ -691,11 +688,7 @@ Format output harus tepat berupa JSON object:
 			} else {
 				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
 			}
-			// Sanitize video-style language from carousel slide content
-			videoContent.Scenes[i].Visual = sanitizeCarouselText(videoContent.Scenes[i].Visual)
-			videoContent.Scenes[i].Narration = sanitizeCarouselText(videoContent.Scenes[i].Narration)
 		}
-		videoContent.Hook = sanitizeCarouselText(videoContent.Hook)
 	} else if isPoster {
 		videoContent.Format = "Poster Infografis"
 		videoContent.Duration = "1 Lembar Poster (1080x1350px)"
