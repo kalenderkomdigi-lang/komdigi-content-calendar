@@ -167,27 +167,41 @@ export const exportIdeasToExcel = (theme: string, dateStr: string, ideas: IdeaIt
 
 export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
   const doc = new jsPDF();
-  addPDFHeader(doc, 'NASKAH & STORYBOARD VIDEO PRODUCTION', `Topik: "${theme}" | Format: ${video.format} | Durasi: ${video.duration}`);
+  const isCarousel = video.format?.toLowerCase().includes('carousel');
+  const isPoster = video.format?.toLowerCase().includes('poster') || video.format?.toLowerCase().includes('infografis');
+
+  const docTitle = isCarousel 
+    ? 'PANDUAN & BREAKDOWN SLIDE CAROUSEL' 
+    : isPoster 
+    ? 'STRUKTUR & LAYOUT POSTER INFOGRAFIS' 
+    : 'NASKAH & STORYBOARD VIDEO PRODUCTION';
+
+  const specLabel = isCarousel ? 'Detail Spesifikasi Carousel' : isPoster ? 'Detail Spesifikasi Poster' : 'Detail Spesifikasi Video';
+  const hookLabel = isCarousel ? 'Headline Cover Slide 1' : isPoster ? 'Headline Utama Poster' : 'Hook (3 Detik Pertama)';
+  const musicLabel = isCarousel ? 'Saran Audio Tren Instagram' : isPoster ? 'Saran Musik Latar Feed' : 'Saran Musik Latar';
+  const tableTitle = isCarousel ? 'ALUR SLIDE CAROUSEL' : isPoster ? 'BAGIAN POSTER INFOGRAFIS' : 'ALUR SCENE STORYBOARD';
+
+  addPDFHeader(doc, docTitle, `Topik: "${theme}" | Format: ${video.format} | ${video.duration}`);
 
   let currentY = 48;
 
   // Metadata Table Box
   const metaData = [
-    ['Judul Video', video.title || '-'],
-    ['Format Video', video.format || '-'],
-    ['Durasi Total', video.duration || '-'],
-    ['Hook (3 Detik Pertama)', `"${video.hook || '-'}"`],
-    ['Saran Musik Latar', video.music_suggestion || '-'],
+    [isCarousel ? 'Judul Carousel' : isPoster ? 'Judul Poster' : 'Judul Video', video.title || '-'],
+    ['Format Konten', video.format || '-'],
+    ['Spesifikasi / Durasi', video.duration || '-'],
+    [hookLabel, `"${video.hook || '-'}"`],
+    [musicLabel, video.music_suggestion || '-'],
     ['Call to Action (CTA)', video.cta || '-']
   ];
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Parameter', 'Detail Spesifikasi Video']],
+    head: [['Parameter', specLabel]],
     body: metaData,
     theme: 'grid',
     headStyles: {
-      fillColor: [79, 70, 229], // Indigo-600
+      fillColor: isCarousel ? [67, 56, 202] : [79, 70, 229],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
       fontSize: 9
@@ -205,16 +219,21 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
 
   currentY = (doc as any).lastAutoTable.finalY + 8;
 
-  // Storyboard Scenes Table
+  // Storyboard / Slide Scenes Table
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(30, 41, 59);
-  doc.text('ALUR SCENE STORYBOARD', 14, currentY);
+  doc.text(tableTitle, 14, currentY);
 
   currentY += 4;
 
+  const col1Name = isCarousel ? 'Slide' : isPoster ? 'Section' : 'Scene';
+  const col2Name = isCarousel ? 'Posisi' : isPoster ? 'Bagian' : 'Durasi';
+  const col3Name = isCarousel ? 'Arahan Visual Desain Slide' : isPoster ? 'Deskripsi Layout & Visual' : 'Deskripsi Visual & Camera Shot';
+  const col4Name = isCarousel ? 'Copywriting / Teks yang Ditulis di Slide' : isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
+
   const sceneRows = (video.scenes || []).map((scene) => [
-    `Scene ${scene.scene_number}`,
+    `${col1Name} ${scene.scene_number}`,
     scene.duration || '-',
     scene.visual || '-',
     `"${scene.narration || '-'}"`
@@ -222,11 +241,11 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
 
   autoTable(doc, {
     startY: currentY,
-    head: [['Scene', 'Durasi', 'Deskripsi Visual & Camera Shot', 'Naskah Narasi / Dialog']],
+    head: [[col1Name, col2Name, col3Name, col4Name]],
     body: sceneRows,
     theme: 'grid',
     headStyles: {
-      fillColor: [30, 41, 59], // Slate-800
+      fillColor: isCarousel ? [49, 46, 129] : [30, 41, 59],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
       fontSize: 8.5,
@@ -239,9 +258,9 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
     },
     columnStyles: {
       0: { cellWidth: 20, halign: 'center', fontStyle: 'bold' },
-      1: { cellWidth: 20, halign: 'center' },
-      2: { cellWidth: 70 },
-      3: { cellWidth: 75, fontStyle: 'italic' }
+      1: { cellWidth: 26, halign: 'center' },
+      2: { cellWidth: 67 },
+      3: { cellWidth: 72, fontStyle: 'italic' }
     },
     alternateRowStyles: {
       fillColor: [248, 250, 252]
@@ -286,44 +305,53 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
   }
 
   addPDFFooter(doc);
-  doc.save(`Storyboard_${sanitizeFilename(video.title || theme)}.pdf`);
+  const filePrefix = isCarousel ? 'Carousel' : isPoster ? 'Poster' : 'Storyboard';
+  doc.save(`${filePrefix}_${sanitizeFilename(video.title || theme)}.pdf`);
 };
 
 export const exportStoryboardToExcel = (theme: string, video: VideoContent) => {
   const workbook = XLSX.utils.book_new();
+  const isCarousel = video.format?.toLowerCase().includes('carousel');
+  const isPoster = video.format?.toLowerCase().includes('poster') || video.format?.toLowerCase().includes('infografis');
 
-  // Sheet 1: Konsep Video & Metadata
+  // Sheet 1: Konsep & Metadata
   const metaRows = [
-    { 'Parameter': 'Judul Video', 'Detail': video.title },
-    { 'Parameter': 'Format Video', 'Detail': video.format },
-    { 'Parameter': 'Durasi Total', 'Detail': video.duration },
-    { 'Parameter': 'Hook (3 Detik Pertama)', 'Detail': video.hook },
-    { 'Parameter': 'Saran Musik Latar', 'Detail': video.music_suggestion },
+    { 'Parameter': isCarousel ? 'Judul Carousel' : isPoster ? 'Judul Poster' : 'Judul Video', 'Detail': video.title },
+    { 'Parameter': 'Format Konten', 'Detail': video.format },
+    { 'Parameter': 'Spesifikasi / Durasi', 'Detail': video.duration },
+    { 'Parameter': isCarousel ? 'Headline Cover Slide 1' : isPoster ? 'Headline Poster' : 'Hook (3 Detik Pertama)', 'Detail': video.hook },
+    { 'Parameter': isCarousel ? 'Saran Audio Tren' : 'Saran Musik Latar', 'Detail': video.music_suggestion },
     { 'Parameter': 'Call to Action (CTA)', 'Detail': video.cta },
     { 'Parameter': 'Caption', 'Detail': video.caption },
     { 'Parameter': 'Hashtags', 'Detail': (video.hashtags || []).join(' ') }
   ];
   const metaSheet = XLSX.utils.json_to_sheet(metaRows);
   metaSheet['!cols'] = [{ wch: 25 }, { wch: 70 }];
-  XLSX.utils.book_append_sheet(workbook, metaSheet, 'Konsep Video');
+  XLSX.utils.book_append_sheet(workbook, metaSheet, isCarousel ? 'Konsep Carousel' : isPoster ? 'Konsep Poster' : 'Konsep Video');
 
-  // Sheet 2: Storyboard Scenes
+  // Sheet 2: Breakdown Slides / Scenes
+  const col1Name = isCarousel ? 'Slide #' : isPoster ? 'Section #' : 'Scene #';
+  const col2Name = isCarousel ? 'Posisi Slide' : isPoster ? 'Bagian Poster' : 'Durasi';
+  const col3Name = isCarousel ? 'Arahan Desain Visual Slide' : isPoster ? 'Layout Desain Visual' : 'Deskripsi Visual & Shot';
+  const col4Name = isCarousel ? 'Teks yang Ditulis di Slide' : isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
+
   const sceneRows = (video.scenes || []).map((scene) => ({
-    'Scene #': scene.scene_number,
-    'Durasi': scene.duration,
-    'Deskripsi Visual & Shot': scene.visual,
-    'Naskah Narasi / Dialog': scene.narration
+    [col1Name]: scene.scene_number,
+    [col2Name]: scene.duration,
+    [col3Name]: scene.visual,
+    [col4Name]: scene.narration
   }));
   const sceneSheet = XLSX.utils.json_to_sheet(sceneRows);
   sceneSheet['!cols'] = [
     { wch: 10 },
-    { wch: 15 },
-    { wch: 50 },
-    { wch: 60 }
+    { wch: 20 },
+    { wch: 55 },
+    { wch: 65 }
   ];
-  XLSX.utils.book_append_sheet(workbook, sceneSheet, 'Storyboard Scenes');
+  XLSX.utils.book_append_sheet(workbook, sceneSheet, isCarousel ? 'Alur Slide' : isPoster ? 'Struktur Poster' : 'Storyboard Scenes');
 
-  XLSX.writeFile(workbook, `Storyboard_${sanitizeFilename(video.title || theme)}.xlsx`);
+  const filePrefix = isCarousel ? 'Carousel' : isPoster ? 'Poster' : 'Storyboard';
+  XLSX.writeFile(workbook, `${filePrefix}_${sanitizeFilename(video.title || theme)}.xlsx`);
 };
 
 // ==========================================

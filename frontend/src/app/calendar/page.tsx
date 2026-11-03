@@ -1027,29 +1027,53 @@ export default function CalendarPage() {
                               {generatingVideoIndex === idx ? (
                                 <>
                                   <span className="h-3 w-3 rounded-full border border-[#0B2545] border-t-amber-500 animate-spin"></span>
-                                  <span>Membuat Script...</span>
+                                  <span>
+                                    {idea.format?.toLowerCase().includes('carousel') 
+                                      ? 'Menyusun Slide...' 
+                                      : idea.format?.toLowerCase().includes('poster') || idea.format?.toLowerCase().includes('infografis')
+                                      ? 'Menyusun Layout...'
+                                      : 'Membuat Script...'}
+                                  </span>
                                 </>
                               ) : (
                                 <>
-                                  <Clapperboard className="h-3.5 w-3.5 text-amber-600" />
-                                  <span>Konsep Video Production</span>
+                                  {idea.format?.toLowerCase().includes('carousel') ? (
+                                    <Layers className="h-3.5 w-3.5 text-indigo-600" />
+                                  ) : idea.format?.toLowerCase().includes('poster') || idea.format?.toLowerCase().includes('infografis') ? (
+                                    <FileText className="h-3.5 w-3.5 text-blue-600" />
+                                  ) : (
+                                    <Clapperboard className="h-3.5 w-3.5 text-amber-600" />
+                                  )}
+                                  <span>
+                                    {idea.format?.toLowerCase().includes('carousel') 
+                                      ? 'Rancang Slide Carousel' 
+                                      : idea.format?.toLowerCase().includes('poster') || idea.format?.toLowerCase().includes('infografis')
+                                      ? 'Rancang Layout Poster'
+                                      : 'Storyboard & Naskah Video'}
+                                  </span>
                                 </>
                               )}
                             </button>
                           </div>
 
-                          {/* Video concept result */}
-                          {generatedVideos[idx] && (
+                          {/* Video / Carousel / Poster concept result */}
+                          {generatedVideos[idx] && (() => {
+                            const isCar = generatedVideos[idx].format?.toLowerCase().includes('carousel') || idea.format?.toLowerCase().includes('carousel');
+                            const isPost = generatedVideos[idx].format?.toLowerCase().includes('poster') || generatedVideos[idx].format?.toLowerCase().includes('infografis') || idea.format?.toLowerCase().includes('poster');
+                            return (
                             <div className="mt-3 pt-3 border-t border-slate-200 space-y-3 bg-slate-50/80 p-3.5 rounded-xl border">
                               <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-200">
-                                <span className="text-[10px] font-extrabold text-[#0B2545] uppercase tracking-wider">
-                                  Konsep Storyboard Video 0{idx + 1}
+                                <span className="text-[10px] font-extrabold text-[#0B2545] uppercase tracking-wider flex items-center space-x-1.5">
+                                  {isCar ? <Layers className="h-3.5 w-3.5 text-indigo-600" /> : isPost ? <FileText className="h-3.5 w-3.5 text-blue-600" /> : <Clapperboard className="h-3.5 w-3.5 text-amber-600" />}
+                                  <span>
+                                    {isCar ? `Konsep & Alur Slide Carousel 0${idx + 1}` : isPost ? `Layout & Copywriting Poster 0${idx + 1}` : `Konsep Storyboard Video 0${idx + 1}`}
+                                  </span>
                                 </span>
                                 <div className="flex items-center space-x-1.5">
                                   <button
                                     onClick={() => exportStoryboardToPDF(customTheme, generatedVideos[idx])}
                                     className="text-[9.5px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 px-2 py-1 rounded-md transition flex items-center space-x-1 cursor-pointer"
-                                    title="Ekspor Storyboard ke PDF"
+                                    title="Ekspor ke PDF"
                                   >
                                     <FileText className="h-3 w-3" />
                                     <span>PDF</span>
@@ -1057,7 +1081,7 @@ export default function CalendarPage() {
                                   <button
                                     onClick={() => exportStoryboardToExcel(customTheme, generatedVideos[idx])}
                                     className="text-[9.5px] font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2 py-1 rounded-md transition flex items-center space-x-1 cursor-pointer"
-                                    title="Ekspor Storyboard ke Excel"
+                                    title="Ekspor ke Excel"
                                   >
                                     <FileSpreadsheet className="h-3 w-3" />
                                     <span>Excel</span>
@@ -1069,14 +1093,16 @@ export default function CalendarPage() {
                                     {copiedScriptIndex === idx ? (
                                       <span className="text-emerald-600 font-bold">Tersalin!</span>
                                     ) : (
-                                      <span>Copy Script</span>
+                                      <span>Copy {isCar ? 'Slide' : isPost ? 'Poster' : 'Script'}</span>
                                     )}
                                   </button>
                                 </div>
                               </div>
 
                               <div className="flex flex-wrap gap-1.5">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#0B2545] text-white text-[9px] font-bold">
+                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold ${
+                                  isCar ? 'bg-indigo-700 text-white' : isPost ? 'bg-blue-700 text-white' : 'bg-[#0B2545] text-white'
+                                }`}>
                                   {generatedVideos[idx].format}
                                 </span>
                                 <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-200 text-slate-800 text-[9px] font-bold">
@@ -1090,24 +1116,40 @@ export default function CalendarPage() {
 
                               {/* Hook */}
                               <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                                <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">Hook (3 Detik Pertama)</span>
+                                <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-wider block mb-0.5">
+                                  {isCar ? 'Headline Cover Slide 1 (Hook Pemikat)' : isPost ? 'Headline Utama Poster' : 'Hook (3 Detik Pertama)'}
+                                </span>
                                 <p className="text-xs text-slate-800 leading-relaxed font-semibold italic">
                                   &ldquo;{generatedVideos[idx].hook}&rdquo;
                                 </p>
                               </div>
 
-                              {/* Storyboard scenes */}
+                              {/* Storyboard / Slide breakdown */}
                               <div className="space-y-2">
-                                <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">Storyboard Adegan Video</span>
+                                <span className="text-[9px] font-extrabold text-slate-500 uppercase tracking-wider block">
+                                  {isCar ? `Alur Slide-by-Slide (${generatedVideos[idx].scenes.length} Slide)` : isPost ? 'Struktur Bagian Poster Infografis' : 'Storyboard Adegan Video'}
+                                </span>
                                 {generatedVideos[idx].scenes.map((scene, sIdx) => (
                                   <div key={sIdx} className="flex gap-2 bg-white p-2.5 rounded-lg border border-slate-200 text-xs">
-                                    <div className="h-5 w-5 rounded-full bg-[#0B2545] text-amber-400 text-[9px] font-extrabold flex items-center justify-center shrink-0 mt-0.5">
+                                    <div className={`h-5 w-5 rounded-full text-[9px] font-extrabold flex items-center justify-center shrink-0 mt-0.5 ${
+                                      isCar ? 'bg-indigo-900 text-amber-300' : isPost ? 'bg-blue-900 text-blue-200' : 'bg-[#0B2545] text-amber-400'
+                                    }`}>
                                       {scene.scene_number}
                                     </div>
                                     <div className="space-y-0.5 leading-relaxed">
-                                      <span className="text-[9px] font-bold text-slate-400 uppercase">{scene.duration}</span>
-                                      <p className="text-slate-800"><strong className="text-[#0B2545]">Visual:</strong> {scene.visual}</p>
-                                      <p className="text-slate-700"><strong className="text-amber-800">Narasi:</strong> &ldquo;{scene.narration}&rdquo;</p>
+                                      <span className="text-[9px] font-bold text-slate-500 uppercase">
+                                        {scene.duration || (isCar ? `Slide ${scene.scene_number}` : `Bagian ${scene.scene_number}`)}
+                                      </span>
+                                      <p className="text-slate-800">
+                                        <strong className={isCar ? 'text-indigo-900' : isPost ? 'text-blue-900' : 'text-[#0B2545]'}>
+                                          {isCar ? 'Arahan Visual Desain Slide:' : isPost ? 'Layout & Visual Grafis:' : 'Visual Kamera:'}
+                                        </strong> {scene.visual}
+                                      </p>
+                                      <p className="text-slate-700">
+                                        <strong className="text-slate-900">
+                                          {isCar ? 'Teks yang Ditulis di Slide:' : isPost ? 'Teks Konten Poster:' : 'Naskah Narasi:'}
+                                        </strong> &ldquo;{scene.narration}&rdquo;
+                                      </p>
                                     </div>
                                   </div>
                                 ))}
@@ -1117,7 +1159,9 @@ export default function CalendarPage() {
                               <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs">
                                 <div className="flex items-center space-x-1.5 mb-0.5">
                                   <Music className="h-3.5 w-3.5 text-blue-700" />
-                                  <span className="text-[9px] font-extrabold text-blue-800 uppercase tracking-wider">Saran Audio Latar</span>
+                                  <span className="text-[9px] font-extrabold text-blue-800 uppercase tracking-wider">
+                                    {isCar ? 'Saran Audio / Lagu Tren Instagram' : isPost ? 'Saran Musik Latar Feed' : 'Saran Audio Latar'}
+                                  </span>
                                 </div>
                                 <p className="text-slate-700 font-medium">{generatedVideos[idx].music_suggestion}</p>
                               </div>
@@ -1131,7 +1175,8 @@ export default function CalendarPage() {
                                 <p className="text-slate-700 font-medium">{generatedVideos[idx].cta}</p>
                               </div>
                             </div>
-                          )}
+                            );
+                          })()}
                         </div>
                       ))}
                     </div>

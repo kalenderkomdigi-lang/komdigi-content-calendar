@@ -170,6 +170,23 @@ Format output harus tepat berupa JSON array:
 				ideas[i].Pillar = "Education/Information"
 			}
 		}
+
+		// Sanitize reference URLs based on format
+		fmtLower := strings.ToLower(ideas[i].Format)
+		refLower := strings.ToLower(ideas[i].ReferenceURL)
+		if strings.Contains(fmtLower, "carousel") || strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis") {
+			if strings.Contains(refLower, "youtube.com") || strings.Contains(refLower, "youtu.be") || !strings.Contains(refLower, "instagram.com") {
+				if strings.Contains(fmtLower, "carousel") {
+					ideas[i].ReferenceURL = "https://www.instagram.com/explore/tags/carouseltips/"
+				} else {
+					ideas[i].ReferenceURL = "https://www.instagram.com/explore/tags/infografis/"
+				}
+			}
+		} else if strings.Contains(fmtLower, "reels") || strings.Contains(fmtLower, "tiktok") {
+			if strings.Contains(refLower, "youtube.com") && !strings.Contains(refLower, "shorts") {
+				ideas[i].ReferenceURL = "https://www.tiktok.com/tag/literasidigital"
+			}
+		}
 	}
 
 	return ideas, nil
@@ -329,11 +346,88 @@ func GenerateCaptionFromMultimodal(ctx context.Context, theme string, imageBytes
 	return strings.TrimSpace(caption), nil
 }
 
-// GenerateMockVideoContent generates a placeholder video concept if the Gemini API key is missing
+// GenerateMockVideoContent generates a placeholder concept if the Gemini API key is missing
 func GenerateMockVideoContent(theme string, idea models.IdeaItem) models.VideoContent {
 	ideaTitle := idea.Title
 	if ideaTitle == "" {
 		ideaTitle = "Informasi Publik Digital"
+	}
+
+	fmtLower := strings.ToLower(idea.Format)
+	if strings.Contains(fmtLower, "carousel") {
+		return models.VideoContent{
+			Title:    fmt.Sprintf("Konsep Slide Carousel: %s 📑", ideaTitle),
+			Format:   "Carousel Instagram",
+			Duration: "5 Slide (1080x1350px 4:5)",
+			Hook:     fmt.Sprintf("\"Kenali Pentingnya %s dalam 5 Menit! Geser untuk Pelajari Lebih Lanjut 👉\" 🏛️", theme),
+			Scenes: []models.VideoScene{
+				{
+					SceneNumber: 1,
+					Visual:      "Cover bergaya modern minimalis, latar warna navy Komdigi #0B2545 dengan tipografi judul kontras putih dan aksen emas. Terdapat logo resmi Komdigi RI.",
+					Narration:   fmt.Sprintf("PANDUAN LENGKAP: %s (Geser ke Kiri 👉)", ideaTitle),
+					Duration:    "Slide 1 (Cover)",
+				},
+				{
+					SceneNumber: 2,
+					Visual:      "Ilustrasi vektor grafis dan bagan perbandingan yang menggambarkan latar belakang serta tantangan masyarakat.",
+					Narration:   "Di era transformasi digital saat ini, memahami kecakapan digital bukan lagi pilihan, melainkan kebutuhan mendesak untuk melindungi diri dan produktif.",
+					Duration:    "Slide 2 (Konteks)",
+				},
+				{
+					SceneNumber: 3,
+					Visual:      "Tampilan card infografis 3 poin utama dengan bullet point terstruktur dan icon penjelas.",
+					Narration:   "3 Langkah Kunci: 1) Verifikasi sumber informasi, 2) Amankan akun dengan 2FA, 3) Ikuti pelatihan peningkatan skill resmi.",
+					Duration:    "Slide 3 (Solusi)",
+				},
+				{
+					SceneNumber: 4,
+					Visual:      "Bagan roadmap alur pendaftaran program pelatihan Digital Talent Scholarship (DTS) dari BLSDM Komdigi.",
+					Narration:   "BLSDM Komdigi memfasilitasi pelatihan dan sertifikasi kompetensi gratis berstandar industri bagi seluruh masyarakat Indonesia.",
+					Duration:    "Slide 4 (Fasilitas)",
+				},
+				{
+					SceneNumber: 5,
+					Visual:      "Slide penutup dengan logo Komdigi RI, visual icon Save, Share, dan tombol Follow akun resmi.",
+					Narration:   "Simpan (Save) postingan ini agar tidak lupa & bagikan kepada teman atau keluargamu. Kunjungi website DTS untuk informasi pendaftaran!",
+					Duration:    "Slide 5 (CTA)",
+				},
+			},
+			Caption:         fmt.Sprintf("🏛️ [PANDUAN CAROUSEL BLSDM KOMDIGI: %s] 🏛️\n\nHalo Digiers! Geser slide di atas untuk mengetahui langkah-langkah praktis seputar %s. Jangan lupa simpan postingan ini ya! ✨", theme, theme),
+			Hashtags:        []string{"#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital", "#InfografisKomdigi"},
+			MusicSuggestion: "Audio tren Instagram berirama tenang dan elegan.",
+			CTA:             "Simpan postingan ini & kunjungi portal resmi BLSDM Komdigi! 💻",
+		}
+	} else if strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis") {
+		return models.VideoContent{
+			Title:    fmt.Sprintf("Layout Poster Infografis: %s 🖼️", ideaTitle),
+			Format:   "Poster Infografis",
+			Duration: "1 Lembar Poster (1080x1350px)",
+			Hook:     fmt.Sprintf("Edukasi Publik: Panduan Penting Seputar %s 🏛️", theme),
+			Scenes: []models.VideoScene{
+				{
+					SceneNumber: 1,
+					Visual:      "Banner Header atas memuat Logo Kementerian Komunikasi dan Digital RI, judul poster besar dan tegas, serta sub-judul penjelas.",
+					Narration:   fmt.Sprintf("INFOGRAFIS RESMI: %s", ideaTitle),
+					Duration:    "Bagian Atas (Header)",
+				},
+				{
+					SceneNumber: 2,
+					Visual:      "Body infografik memuat diagram grafis, tabel perbandingan fakta vs mitos, dan visualisasi data yang mudah dipahami.",
+					Narration:   "Data dan langkah pencegahan utama yang perlu diterapkan oleh masyarakat sehari-hari.",
+					Duration:    "Bagian Tengah (Body)",
+				},
+				{
+					SceneNumber: 3,
+					Visual:      "Footer bawah memuat sumber data resmi, QR Code akses informasi lebih lanjut, serta logo program BLSDM Komdigi.",
+					Narration:   "Informasi selengkapnya dapat diakses melalui portal resmi digitaltalent.komdigi.go.id.",
+					Duration:    "Bagian Bawah (Footer)",
+				},
+			},
+			Caption:         fmt.Sprintf("🏛️ [INFOGRAFIS BLSDM KOMDIGI: %s] 🏛️\n\nHalo Digiers! Simak poster infografis berikut untuk pemahaman komprehensif seputar %s. ✨", theme, theme),
+			Hashtags:        []string{"#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital", "#PosterKomdigi"},
+			MusicSuggestion: "Audio instrumental ringan pendukung postingan feed.",
+			CTA:             "Bagikan poster ini kepada rekan kerja dan keluarga Anda!",
+		}
 	}
 
 	return models.VideoContent{
@@ -391,54 +485,162 @@ func GenerateVideoContentWithGemini(ctx context.Context, theme string, idea mode
 	model := client.GenerativeModel("gemini-3.5-flash-lite")
 	model.GenerationConfig.ResponseMIMEType = "application/json"
 
-	prompt := fmt.Sprintf(`Kamu adalah tim komunikasi publik dan produser video profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
- 
-Berdasarkan tema utama: "%s" dan IDE KONTEN spesifik berikut:
+	fmtLower := strings.ToLower(idea.Format)
+	var prompt string
+
+	if strings.Contains(fmtLower, "carousel") {
+		prompt = fmt.Sprintf(`Kamu adalah Creative Lead dan Perancang Konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
+
+Berdasarkan tema: "%s" dan IDE KONTEN:
 - Judul Ide: "%s"
 - Ringkasan: "%s"
-- Format Asli: "%s"
-- Referensi URL: "%s"
- 
-Buatkan 1 KONSEP VIDEO PRODUCTION LENGKAP yang informatif, edukatif, terstruktur, dan siap diproduksi untuk publikasi resmi instansi. Video ini berformat pendek (Reels/TikTok/YouTube Shorts) dengan pendekatan profesional dan komunikatif.
- 
-Konsep video harus mencakup:
-- "title": Judul video/konten yang informatif, jelas, resmi, dan ramah publik (sesuaikan dengan format asli "%s" jika relevan)
-- "format": Format video (pilih: "Reels/TikTok", "YouTube Shorts", atau "Video Pendek")
-- "duration": Estimasi durasi total (contoh: "30-60 detik")
-- "hook": Kalimat pembuka atau visual yang menarik perhatian masyarakat di 3 detik pertama secara komunikatif dan santun.
-- "scenes": Array berisi 4-6 scene/adegan storyboard, setiap scene memiliki:
-  - "scene_number": Nomor urut scene (integer)
-  - "visual": Deskripsi detail visual/shot (angle kamera, pencahayaan, latar tempat, teks overlay resmi, transisi)
-  - "narration": Naskah dialog/narasi resmi yang santun, baku, dan profesional untuk dibacakan narator atau ditampilkan di layar
-  - "duration": Rentang waktu scene (contoh: "0-5 detik")
-- "caption": Caption media sosial resmi siap publikasi yang informatif, santun, dan komunikatif
-- "hashtags": Array of strings berisi 6-10 hashtags resmi dan relevan (masukkan hashtag seperti #BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital #Komdigi) (contoh: ["#BLSDMKomdigi", "#DTS", "#LiterasiDigital"])
-- "music_suggestion": Saran musik/audio latar yang tenang, profesional, elegan, dan sesuai untuk konten instansi pemerintah
-- "cta": Call to Action resmi dan santun yang mengarahkan masyarakat untuk mendaftar atau mengakses informasi lebih lanjut melalui portal resmi BLSDM Komdigi (seperti website Digital Talent Scholarship)
- 
-Ketentuan:
-1. Hubungkan secara jelas dengan program/fokus utama dari BLSDM Komdigi (Badan Pengembangan Sumber Daya Manusia Komunikasi dan Digital - Kemenkominfo/Komdigi), seperti program beasiswa pelatihan gratis Digital Talent Scholarship (DTS), kelas literasi digital, beasiswa IT, cybersecurity, digital marketing, AI academy, coding, atau kecakapan digital lainnya.
-2. Menggunakan Bahasa Indonesia yang baik, benar, baku, formal, ramah, dan profesional sesuai standar instansi pemerintah. Hindari kata-kata gaul, slang, atau istilah Gen Z. SELALU gunakan sebutan/sapaan "Digiers" (sapaan khas Komdigi) untuk menyapa audiens/masyarakat di caption maupun narasi video.
-3. Visual harus detail dan mudah diproduksi oleh tim media sosial instansi.
-4. Narasi harus terstruktur, santun, baku, dan komunikatif.
-5. Konsep harus edukatif, original, dan membangun citra positif pelayanan publik.
-6. KETENTUAN STRING JSON: Semua value text di dalam JSON harus ditulis dalam satu baris (single line) tanpa karakter enter/newline mentah. Jika membutuhkan baris baru di dalam teks (misalnya untuk caption), gunakan escape character "\\n".
- 
+- Format: "%s"
+- Pilar: "%s"
+
+Buatkan 1 RANCANGAN DETAIL SLIDE-BY-SLIDE CAROUSEL INSTAGRAM (5-7 Slide) yang sangat edukatif, terstruktur, estetik, dan komunikatif:
+- "title": Judul Carousel (contoh: "Panduan: %s")
+- "format": "Carousel Instagram"
+- "duration": "5-7 Slide (Format 4:5 / 1080x1350px)"
+- "hook": Headline penarik perhatian di Slide 1 (Cover Hook yang membuat netizen berhenti scrolling)
+- "scenes": Array berisi 5-7 slide carousel:
+  * Slide 1 (Cover / Hook Utama):
+    - "scene_number": 1
+    - "duration": "Slide 1 (Cover)"
+    - "visual": Deskripsi layout desain cover (warna dominan navy/biru, tipografi judul besar, elemen ikonik)
+    - "narration": Teks judul besar & sub-judul yang TERTULIS DI SLIDE 1
+  * Slide 2 (Konteks / Masalah / Pengantar):
+    - "scene_number": 2
+    - "duration": "Slide 2"
+    - "visual": Layout infografis / icon pendukung
+    - "narration": Teks copywriting slide kedua (penjelasan latar belakang / masalah)
+  * Slide 3, 4, 5 (Pembahasan / Poin Edukatif / Tips):
+    - "scene_number": 3, 4, dst.
+    - "duration": "Slide 3", "Slide 4", dst.
+    - "visual": Desain diagram visual, cards, poin-poin terstruktur
+    - "narration": Teks materi edukatif yang ringkas, padat, dan mudah dipahami masyarakat
+  * Slide Terakhir (Penutup & Call to Action):
+    - "scene_number": Terakhir
+    - "duration": "Slide Terakhir (CTA)"
+    - "visual": Logo resmi BLSDM Komdigi, icon Save & Share, ajakan follow
+    - "narration": "Simpan postingan ini agar tidak lupa & bagikan kepada sesama Digiers!"
+- "caption": Caption media sosial Instagram lengkap dengan sapaan "Halo Digiers!", pembahasan, ajakan interaksi, dan kontak resmi.
+- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital)
+- "music_suggestion": Rekomendasi lagu/audio tren Instagram yang estetik untuk mengiringi Carousel ini
+- "cta": Call to Action penutup di caption
+
+Semua value text di dalam JSON harus ditulis dalam satu baris (single line). Jika ada baris baru di caption gunakan "\\n".
+
 Format output harus tepat berupa JSON object:
 {
   "title": "...",
-  "format": "...",
-  "duration": "...",
+  "format": "Carousel Instagram",
+  "duration": "5 Slide (1080x1350px 4:5)",
   "hook": "...",
   "scenes": [
-    {"scene_number": 1, "visual": "...", "narration": "...", "duration": "..."},
-    {"scene_number": 2, "visual": "...", "narration": "...", "duration": "..."}
+    {"scene_number": 1, "duration": "Slide 1 (Cover)", "visual": "...", "narration": "..."},
+    {"scene_number": 2, "duration": "Slide 2", "visual": "...", "narration": "..."},
+    {"scene_number": 3, "duration": "Slide 3", "visual": "...", "narration": "..."},
+    {"scene_number": 4, "duration": "Slide 4", "visual": "...", "narration": "..."},
+    {"scene_number": 5, "duration": "Slide 5 (CTA)", "visual": "...", "narration": "..."}
   ],
   "caption": "...",
   "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
   "music_suggestion": "...",
   "cta": "..."
-}`, theme, idea.Title, idea.Summary, idea.Format, idea.ReferenceURL, idea.Format)
+}`, theme, idea.Title, idea.Summary, idea.Format, idea.Pillar, idea.Title)
+	} else if strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis") {
+		prompt = fmt.Sprintf(`Kamu adalah Graphic Designer dan Creative Director profesional untuk infografis media sosial resmi instansi pemerintah (BLSDM Komdigi).
+
+Berdasarkan tema: "%s" dan IDE KONTEN:
+- Judul Ide: "%s"
+- Ringkasan: "%s"
+- Format: "%s"
+
+Buatkan 1 RANCANGAN STRUKTUR & KONTEN POSTER INFOGRAFIS (Single Slide):
+- "title": Judul Poster Infografis
+- "format": "Poster Infografis"
+- "duration": "1 Lembar Poster (Format 4:5 / 1080x1350px)"
+- "hook": Headline Utama di Bagian Header Poster
+- "scenes": Array berisi 3-4 section poster:
+  * Section 1: Header (Judul Utama & Sub-Header)
+    - "scene_number": 1
+    - "duration": "Bagian Atas (Header)"
+    - "visual": Tata letak banner atas, logo resmi Komdigi RI, tipografi judul tegas
+    - "narration": Teks Headline & Sub-judul utama poster
+  * Section 2 & 3: Body (Bagan Data / Infografik / Poin Inti)
+    - "scene_number": 2, 3
+    - "duration": "Bagian Tengah (Infografik)"
+    - "visual": Bagan visual, ikon grafis, statistik perbandingan, diagram alur
+    - "narration": Teks poin-poin penjelasan edukatif yang ringkas dan padat
+  * Section 4: Footer (Identitas & CTA)
+    - "scene_number": 4
+    - "duration": "Bagian Bawah (Footer & CTA)"
+    - "visual": Logo program BLSDM Komdigi, QR code link pendaftaran, identitas resmi
+    - "narration": Teks Call to Action dan sumber data resmi
+- "caption": Caption media sosial pendukung
+- "hashtags": Array hashtags resmi
+- "music_suggestion": Audio tren latar yang tenang (opsional untuk postingan feed IG)
+- "cta": Call to Action penutup
+
+Format output harus tepat berupa JSON object:
+{
+  "title": "...",
+  "format": "Poster Infografis",
+  "duration": "1 Lembar Poster (1080x1350px)",
+  "hook": "...",
+  "scenes": [
+    {"scene_number": 1, "duration": "Bagian Atas (Header)", "visual": "...", "narration": "..."},
+    {"scene_number": 2, "duration": "Bagian Tengah (Infografik)", "visual": "...", "narration": "..."},
+    {"scene_number": 3, "duration": "Bagian Bawah (Footer & CTA)", "visual": "...", "narration": "..."}
+  ],
+  "caption": "...",
+  "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
+  "music_suggestion": "...",
+  "cta": "..."
+}`, theme, idea.Title, idea.Summary, idea.Format)
+	} else {
+		// Reels / Video / TikTok
+		prompt = fmt.Sprintf(`Kamu adalah tim komunikasi publik dan produser video profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
+
+Berdasarkan tema utama: "%s" dan IDE KONTEN:
+- Judul Ide: "%s"
+- Ringkasan: "%s"
+- Format Asli: "%s"
+- Referensi URL: "%s"
+
+Buatkan 1 KONSEP STORYBOARD VIDEO PRODUCTION LENGKAP yang informatif, edukatif, terstruktur, dan siap diproduksi untuk publikasi resmi instansi. Video ini berformat pendek (Reels/TikTok/YouTube Shorts) dengan pendekatan profesional dan komunikatif.
+
+Konsep video harus mencakup:
+- "title": Judul video yang informatif, jelas, resmi, dan ramah publik
+- "format": "Reels/TikTok"
+- "duration": Estimasi durasi total (contoh: "30-60 detik")
+- "hook": Kalimat pembuka atau visual yang menarik perhatian masyarakat di 3 detik pertama secara komunikatif dan santun
+- "scenes": Array berisi 4-6 scene/adegan storyboard, setiap scene memiliki:
+  - "scene_number": Nomor urut scene (integer)
+  - "visual": Deskripsi detail visual/shot (angle kamera, pencahayaan, latar tempat, teks overlay resmi)
+  - "narration": Naskah dialog/narasi resmi yang santun, baku, dan profesional
+  - "duration": Rentang waktu scene (contoh: "0-5 detik")
+- "caption": Caption media sosial resmi siap publikasi yang informatif, santun, dan komunikatif
+- "hashtags": Array of strings berisi hashtag resmi (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital)
+- "music_suggestion": Saran musik/audio latar yang tenang, profesional, dan elegan
+- "cta": Call to Action resmi dan santun
+
+Format output harus tepat berupa JSON object:
+{
+  "title": "...",
+  "format": "Reels/TikTok",
+  "duration": "...",
+  "hook": "...",
+  "scenes": [
+    {"scene_number": 1, "duration": "0-5 detik", "visual": "...", "narration": "..."},
+    {"scene_number": 2, "duration": "5-15 detik", "visual": "...", "narration": "..."}
+  ],
+  "caption": "...",
+  "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
+  "music_suggestion": "...",
+  "cta": "..."
+}`, theme, idea.Title, idea.Summary, idea.Format, idea.ReferenceURL)
+	}
 
 	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
 	if err != nil {
