@@ -1058,8 +1058,15 @@ export default function CalendarPage() {
 
                           {/* Video / Carousel / Poster concept result */}
                           {generatedVideos[idx] && (() => {
-                            const isCar = generatedVideos[idx].format?.toLowerCase().includes('carousel') || idea.format?.toLowerCase().includes('carousel');
-                            const isPost = generatedVideos[idx].format?.toLowerCase().includes('poster') || generatedVideos[idx].format?.toLowerCase().includes('infografis') || idea.format?.toLowerCase().includes('poster');
+                            const isCar = generatedVideos[idx].format?.toLowerCase().includes('carousel') || 
+                                          generatedVideos[idx].format?.toLowerCase().includes('carrousel') || 
+                                          idea.format?.toLowerCase().includes('carousel') || 
+                                          idea.format?.toLowerCase().includes('carrousel') ||
+                                          idea.format?.toLowerCase().includes('slide');
+                            const isPost = generatedVideos[idx].format?.toLowerCase().includes('poster') || 
+                                           generatedVideos[idx].format?.toLowerCase().includes('infografis') || 
+                                           idea.format?.toLowerCase().includes('poster') ||
+                                           idea.format?.toLowerCase().includes('infografis');
                             return (
                             <div className="mt-3 pt-3 border-t border-slate-200 space-y-3 bg-slate-50/80 p-3.5 rounded-xl border">
                               <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-200">

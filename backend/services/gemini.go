@@ -486,49 +486,55 @@ func GenerateVideoContentWithGemini(ctx context.Context, theme string, idea mode
 	model.GenerationConfig.ResponseMIMEType = "application/json"
 
 	fmtLower := strings.ToLower(idea.Format)
+	isCarousel := strings.Contains(fmtLower, "carousel") || strings.Contains(fmtLower, "carrousel") || strings.Contains(fmtLower, "karosel") || strings.Contains(fmtLower, "slide")
+	isPoster := strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis")
 	var prompt string
 
-	if strings.Contains(fmtLower, "carousel") {
+	if isCarousel {
 		prompt = fmt.Sprintf(`Kamu adalah Creative Lead dan Perancang Konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
+
+PERINGATAN SANGAT PENTING:
+Konten ini adalah CAROUSEL INSTAGRAM (POSTINGAN SLIDE GAMBAR GESER), BUKAN VIDEO!
+- DILARANG menggunakan istilah video seperti "detik", "kamera", "shot", "studio", "pembawa acara", "presenter", "adegan", atau "voiceover".
+- Setiap slide adalah 1 lembar grafis visual (desain Canva/Photoshop) yang memuat teks copywriting yang dapat dibaca masyarakat.
+- "duration" untuk setiap item WAJIB bernilai nomor slide seperti: "Slide 1 (Cover)", "Slide 2", "Slide 3", "Slide 4", "Slide 5 (CTA)". DILARANG mencantumkan durasi waktu detik!
 
 Berdasarkan tema: "%s" dan IDE KONTEN:
 - Judul Ide: "%s"
 - Ringkasan: "%s"
-- Format: "%s"
+- Format: Carousel Instagram (5-7 Slide)
 - Pilar: "%s"
 
-Buatkan 1 RANCANGAN DETAIL SLIDE-BY-SLIDE CAROUSEL INSTAGRAM (5-7 Slide) yang sangat edukatif, terstruktur, estetik, dan komunikatif:
+Buatkan 1 RANCANGAN DETAIL SLIDE-BY-SLIDE CAROUSEL INSTAGRAM (5-7 Slide):
 - "title": Judul Carousel (contoh: "Panduan: %s")
 - "format": "Carousel Instagram"
-- "duration": "5-7 Slide (Format 4:5 / 1080x1350px)"
-- "hook": Headline penarik perhatian di Slide 1 (Cover Hook yang membuat netizen berhenti scrolling)
+- "duration": "5-7 Slide (Format Portrait 4:5 / 1080x1350px)"
+- "hook": Teks Headline Besar penarik perhatian di Slide 1 (Cover Hook)
 - "scenes": Array berisi 5-7 slide carousel:
-  * Slide 1 (Cover / Hook Utama):
+  * Slide 1 (Cover):
     - "scene_number": 1
     - "duration": "Slide 1 (Cover)"
-    - "visual": Deskripsi layout desain cover (warna dominan navy/biru, tipografi judul besar, elemen ikonik)
-    - "narration": Teks judul besar & sub-judul yang TERTULIS DI SLIDE 1
+    - "visual": Deskripsi layout desain grafis cover (warna navy Komdigi #0B2545, tipografi judul besar kontras, ilustrasi/icon utama)
+    - "narration": Teks judul utama & sub-headline yang DICETAK/DITULISKAN di Slide 1
   * Slide 2 (Konteks / Masalah / Pengantar):
     - "scene_number": 2
     - "duration": "Slide 2"
-    - "visual": Layout infografis / icon pendukung
-    - "narration": Teks copywriting slide kedua (penjelasan latar belakang / masalah)
-  * Slide 3, 4, 5 (Pembahasan / Poin Edukatif / Tips):
+    - "visual": Layout grafis infografik dengan ikon penjelas
+    - "narration": Teks copywriting slide kedua (penjelasan latar belakang / tantangan masyarakat)
+  * Slide 3, 4, 5 (Isi Materi / Solusi / Langkah Praktis):
     - "scene_number": 3, 4, dst.
     - "duration": "Slide 3", "Slide 4", dst.
-    - "visual": Desain diagram visual, cards, poin-poin terstruktur
-    - "narration": Teks materi edukatif yang ringkas, padat, dan mudah dipahami masyarakat
+    - "visual": Desain diagram visual, cards kotak poin, ilustrasi langkah praktis
+    - "narration": Teks materi edukasi yang ringkas, padat, dan mudah dipahami yang tertulis di slide
   * Slide Terakhir (Penutup & Call to Action):
     - "scene_number": Terakhir
     - "duration": "Slide Terakhir (CTA)"
-    - "visual": Logo resmi BLSDM Komdigi, icon Save & Share, ajakan follow
+    - "visual": Logo resmi Komdigi RI, visual icon Save & Share, tombol follow
     - "narration": "Simpan postingan ini agar tidak lupa & bagikan kepada sesama Digiers!"
-- "caption": Caption media sosial Instagram lengkap dengan sapaan "Halo Digiers!", pembahasan, ajakan interaksi, dan kontak resmi.
-- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital)
+- "caption": Caption Instagram lengkap dengan sapaan "Halo Digiers!", pembahasan ringkas materi, ajakan bertindak (CTA), dan kontak resmi.
+- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital #CarouselKomdigi)
 - "music_suggestion": Rekomendasi lagu/audio tren Instagram yang estetik untuk mengiringi Carousel ini
 - "cta": Call to Action penutup di caption
-
-Semua value text di dalam JSON harus ditulis dalam satu baris (single line). Jika ada baris baru di caption gunakan "\\n".
 
 Format output harus tepat berupa JSON object:
 {
@@ -547,8 +553,8 @@ Format output harus tepat berupa JSON object:
   "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
   "music_suggestion": "...",
   "cta": "..."
-}`, theme, idea.Title, idea.Summary, idea.Format, idea.Pillar, idea.Title)
-	} else if strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis") {
+}`, theme, idea.Title, idea.Summary, idea.Pillar, idea.Title)
+	} else if isPoster {
 		prompt = fmt.Sprintf(`Kamu adalah Graphic Designer dan Creative Director profesional untuk infografis media sosial resmi instansi pemerintah (BLSDM Komdigi).
 
 Berdasarkan tema: "%s" dan IDE KONTEN:
@@ -669,6 +675,26 @@ Format output harus tepat berupa JSON object:
 	if err != nil {
 		log.Printf("Failed to parse JSON from Gemini video response: %s. Error: %v", jsonText, err)
 		return models.VideoContent{}, fmt.Errorf("failed to parse JSON response: %v", err)
+	}
+
+	if isCarousel {
+		videoContent.Format = "Carousel Instagram"
+		if !strings.Contains(strings.ToLower(videoContent.Duration), "slide") {
+			videoContent.Duration = fmt.Sprintf("%d Slide (1080x1350px 4:5)", len(videoContent.Scenes))
+		}
+		for i := range videoContent.Scenes {
+			videoContent.Scenes[i].SceneNumber = i + 1
+			if i == 0 {
+				videoContent.Scenes[i].Duration = "Slide 1 (Cover)"
+			} else if i == len(videoContent.Scenes)-1 {
+				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d (CTA/Penutup)", i+1)
+			} else {
+				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
+			}
+		}
+	} else if isPoster {
+		videoContent.Format = "Poster Infografis"
+		videoContent.Duration = "1 Lembar Poster (1080x1350px)"
 	}
 
 	return videoContent, nil
