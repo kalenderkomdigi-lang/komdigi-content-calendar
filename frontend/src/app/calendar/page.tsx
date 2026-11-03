@@ -358,7 +358,7 @@ export default function CalendarPage() {
     setTimeout(() => setCopiedIndex(null), 2000);
   };
 
-  // Generate Video Concept handler
+  // Generate Video / Carousel / Poster Concept handler
   const handleGenerateVideo = async (idea: IdeaItem, index: number) => {
     setGeneratingVideoIndex(index);
     try {
@@ -367,9 +367,15 @@ export default function CalendarPage() {
         body: JSON.stringify({ theme: customTheme, idea }),
       });
       setGeneratedVideos(prev => ({ ...prev, [index]: res.video_content }));
-      showFeedback('Konsep naskah video berhasil diproduksi!', 'success');
+      const fmtL = (idea.format || '').toLowerCase();
+      const successMsg = fmtL.includes('carousel') || fmtL.includes('carrousel')
+        ? 'Rancangan slide carousel berhasil dibuat!'
+        : fmtL.includes('poster') || fmtL.includes('infografis')
+        ? 'Rancangan layout poster berhasil dibuat!'
+        : 'Konsep naskah video berhasil diproduksi!';
+      showFeedback(successMsg, 'success');
     } catch (err: any) {
-      showFeedback('Gagal membuat konsep video: ' + err.message, 'error');
+      showFeedback('Gagal membuat konsep konten: ' + err.message, 'error');
     } finally {
       setGeneratingVideoIndex(null);
     }
@@ -379,15 +385,28 @@ export default function CalendarPage() {
     const video = generatedVideos[index];
     if (!video) return;
 
-    let text = `🎬 *NASKAH & STORYBOARD VIDEO PRODUCTION*\n`;
+    // Determine format from the idea that generated this concept
+    const ideaFmt = (generatedIdeas[index]?.format || video.format || '').toLowerCase();
+    const isCar = ideaFmt.includes('carousel') || ideaFmt.includes('carrousel');
+    const isPost = ideaFmt.includes('poster') || ideaFmt.includes('infografis');
+
+    const headerEmoji = isCar ? '📑' : isPost ? '🖼️' : '🎬';
+    const headerTitle = isCar ? 'RANCANGAN SLIDE CAROUSEL INSTAGRAM' : isPost ? 'RANCANGAN POSTER INFOGRAFIS' : 'NASKAH & STORYBOARD VIDEO PRODUCTION';
+    const hookLabel = isCar ? 'HEADLINE COVER SLIDE 1' : isPost ? 'HEADLINE POSTER' : 'HOOK (3 Detik Pertama)';
+    const breakdownLabel = isCar ? 'ALUR SLIDE-BY-SLIDE' : isPost ? 'STRUKTUR POSTER' : 'STORYBOARD / ALUR SCENE';
+    const itemLabel = isCar ? 'Slide' : isPost ? 'Section' : 'Scene';
+    const visualLabel = isCar ? 'Arahan Desain Visual Slide' : isPost ? 'Layout Visual' : 'Visual';
+    const textLabel = isCar ? 'Teks di Slide' : isPost ? 'Teks Poster' : 'Narasi';
+
+    let text = `${headerEmoji} *${headerTitle}*\n`;
     text += `Judul: ${video.title}\n`;
-    text += `Format: ${video.format} | Durasi: ${video.duration}\n\n`;
-    text += `📌 *HOOK (3 Detik Pertama):*\n"${video.hook}"\n\n`;
-    text += `📋 *STORYBOARD / ALUR SCENE:*\n`;
+    text += `Format: ${video.format} | ${isCar ? 'Spesifikasi' : 'Durasi'}: ${video.duration}\n\n`;
+    text += `📌 *${hookLabel}:*\n"${video.hook}"\n\n`;
+    text += `📋 *${breakdownLabel}:*\n`;
     video.scenes.forEach((s) => {
-      text += `Scene ${s.scene_number} [${s.duration}]:\n- Visual: ${s.visual}\n- Narasi: "${s.narration}"\n\n`;
+      text += `${itemLabel} ${s.scene_number} [${s.duration}]:\n- ${visualLabel}: ${s.visual}\n- ${textLabel}: "${s.narration}"\n\n`;
     });
-    text += `🎵 *Saran Musik Latar:* ${video.music_suggestion}\n`;
+    text += `🎵 *${isCar ? 'Saran Audio Tren' : 'Saran Musik Latar'}:* ${video.music_suggestion}\n`;
     text += `📢 *Call to Action:* ${video.cta}\n\n`;
     text += `📝 *Caption Pendukung:*\n${video.caption}\n\n`;
     text += `🏷️ ${video.hashtags ? video.hashtags.join(' ') : ''}`;
@@ -1058,15 +1077,9 @@ export default function CalendarPage() {
 
                           {/* Video / Carousel / Poster concept result */}
                           {generatedVideos[idx] && (() => {
-                            const isCar = generatedVideos[idx].format?.toLowerCase().includes('carousel') || 
-                                          generatedVideos[idx].format?.toLowerCase().includes('carrousel') || 
-                                          idea.format?.toLowerCase().includes('carousel') || 
-                                          idea.format?.toLowerCase().includes('carrousel') ||
-                                          idea.format?.toLowerCase().includes('slide');
-                            const isPost = generatedVideos[idx].format?.toLowerCase().includes('poster') || 
-                                           generatedVideos[idx].format?.toLowerCase().includes('infografis') || 
-                                           idea.format?.toLowerCase().includes('poster') ||
-                                           idea.format?.toLowerCase().includes('infografis');
+                            const fmtLower = (idea.format || '').toLowerCase();
+                            const isCar = fmtLower.includes('carousel') || fmtLower.includes('carrousel');
+                            const isPost = fmtLower.includes('poster') || fmtLower.includes('infografis');
                             return (
                             <div className="mt-3 pt-3 border-t border-slate-200 space-y-3 bg-slate-50/80 p-3.5 rounded-xl border">
                               <div className="flex flex-wrap items-center justify-between gap-2 pb-1.5 border-b border-slate-200">
@@ -1110,10 +1123,14 @@ export default function CalendarPage() {
                                 <span className={`inline-flex items-center px-2 py-0.5 rounded text-[9px] font-bold ${
                                   isCar ? 'bg-indigo-700 text-white' : isPost ? 'bg-blue-700 text-white' : 'bg-[#0B2545] text-white'
                                 }`}>
-                                  {generatedVideos[idx].format}
+                                  {isCar ? 'Carousel Instagram' : isPost ? 'Poster Infografis' : (generatedVideos[idx].format || idea.format)}
                                 </span>
                                 <span className="inline-flex items-center px-2 py-0.5 rounded bg-slate-200 text-slate-800 text-[9px] font-bold">
-                                  {generatedVideos[idx].duration}
+                                  {isCar && !generatedVideos[idx].duration?.toLowerCase().includes('slide')
+                                    ? `${generatedVideos[idx].scenes?.length || 5} Slide (1080x1350px)`
+                                    : isPost && !generatedVideos[idx].duration?.toLowerCase().includes('poster')
+                                    ? '1 Lembar Poster (1080x1350px)'
+                                    : generatedVideos[idx].duration}
                                 </span>
                               </div>
 
@@ -1145,7 +1162,11 @@ export default function CalendarPage() {
                                     </div>
                                     <div className="space-y-0.5 leading-relaxed">
                                       <span className="text-[9px] font-bold text-slate-500 uppercase">
-                                        {scene.duration || (isCar ? `Slide ${scene.scene_number}` : `Bagian ${scene.scene_number}`)}
+                                        {isCar
+                                          ? (scene.duration?.toLowerCase().includes('slide') ? scene.duration : sIdx === 0 ? 'Slide 1 (Cover)' : sIdx === generatedVideos[idx].scenes.length - 1 ? `Slide ${sIdx + 1} (CTA)` : `Slide ${sIdx + 1}`)
+                                          : isPost
+                                          ? (scene.duration || `Bagian ${scene.scene_number}`)
+                                          : (scene.duration || `Scene ${scene.scene_number}`)}
                                       </span>
                                       <p className="text-slate-800">
                                         <strong className={isCar ? 'text-indigo-900' : isPost ? 'text-blue-900' : 'text-[#0B2545]'}>

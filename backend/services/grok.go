@@ -59,6 +59,66 @@ func cleanJSONString(s string) string {
 	return strings.TrimSpace(s)
 }
 
+// sanitizeCarouselText cleans video-style terminology from carousel slide content
+// when the AI incorrectly generates video storyboard language for a carousel
+func sanitizeCarouselText(text string) string {
+	// Check if text contains any video-style terms; if not, return as-is
+	lower := strings.ToLower(text)
+	videoTerms := []string{"close-up", "medium shot", "wide shot", "full shot", "b-roll", "zoom-in", "zoom in",
+		"zoom-out", "zoom out", "di studio", "pembawa acara", "voiceover", "voice-over"}
+	hasVideoTerm := false
+	for _, term := range videoTerms {
+		if strings.Contains(lower, term) {
+			hasVideoTerm = true
+			break
+		}
+	}
+	if !hasVideoTerm {
+		return text
+	}
+
+	// Apply replacements (case-insensitive by working on lowercase then reconstructing)
+	r := strings.NewReplacer(
+		"Medium close-up", "Ilustrasi grafis",
+		"medium close-up", "Ilustrasi grafis",
+		"Close-up", "Visual detail",
+		"close-up", "visual detail",
+		"Medium shot", "Tampilan grafis",
+		"medium shot", "tampilan grafis",
+		"Wide shot", "Visual panorama grafis",
+		"wide shot", "visual panorama grafis",
+		"Full shot", "Tampilan visual",
+		"full shot", "tampilan visual",
+		"B-roll", "Ilustrasi pendukung",
+		"b-roll", "ilustrasi pendukung",
+		"B-Roll", "Ilustrasi pendukung",
+		"zoom-in", "fokus visual pada",
+		"Zoom-in", "Fokus visual pada",
+		"zoom in", "fokus visual pada",
+		"Zoom in", "Fokus visual pada",
+		"zoom-out", "tampilan luas",
+		"Zoom-out", "Tampilan luas",
+		"zoom out", "tampilan luas",
+		"Zoom out", "Tampilan luas",
+		"Transisi halus", "Perpindahan slide",
+		"transisi halus", "perpindahan slide",
+		"Transisi smooth", "Perpindahan slide",
+		"transisi smooth", "perpindahan slide",
+		"di studio mini", "dengan latar desain grafis",
+		"di Studio Mini", "dengan latar desain grafis",
+		"di studio", "dengan latar desain grafis",
+		"di Studio", "dengan latar desain grafis",
+		"pembawa acara", "Desain tipografi utama",
+		"Pembawa acara", "Desain tipografi utama",
+		"Pembawa Acara", "Desain tipografi utama",
+		"voiceover", "teks slide",
+		"Voiceover", "Teks slide",
+		"voice-over", "teks slide",
+		"Voice-over", "Teks slide",
+	)
+	return r.Replace(text)
+}
+
 func callGrokAPI(ctx context.Context, messages []GrokMessage, jsonMode bool) (string, error) {
 	apiKey := os.Getenv("GROK_API_KEY")
 	if isGrokPlaceholderKey(apiKey) {
@@ -467,7 +527,11 @@ Format output harus tepat berupa JSON object:
 			} else {
 				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
 			}
+			// Sanitize video-style language from carousel slide content
+			videoContent.Scenes[i].Visual = sanitizeCarouselText(videoContent.Scenes[i].Visual)
+			videoContent.Scenes[i].Narration = sanitizeCarouselText(videoContent.Scenes[i].Narration)
 		}
+		videoContent.Hook = sanitizeCarouselText(videoContent.Hook)
 	} else if isPoster {
 		videoContent.Format = "Poster Infografis"
 		videoContent.Duration = "1 Lembar Poster (1080x1350px)"

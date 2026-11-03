@@ -691,7 +691,11 @@ Format output harus tepat berupa JSON object:
 			} else {
 				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
 			}
+			// Sanitize video-style language from carousel slide content
+			videoContent.Scenes[i].Visual = sanitizeCarouselText(videoContent.Scenes[i].Visual)
+			videoContent.Scenes[i].Narration = sanitizeCarouselText(videoContent.Scenes[i].Narration)
 		}
+		videoContent.Hook = sanitizeCarouselText(videoContent.Hook)
 	} else if isPoster {
 		videoContent.Format = "Poster Infografis"
 		videoContent.Duration = "1 Lembar Poster (1080x1350px)"
