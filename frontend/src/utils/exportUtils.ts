@@ -17,6 +17,39 @@ const sanitizeFilename = (name: string): string => {
 };
 
 /**
+ * Sanitizes Unicode emojis and multi-byte characters that cause mojibake in jsPDF default fonts
+ */
+export const sanitizePDFText = (text: string): string => {
+  if (!text) return '';
+  return text
+    // Replace keycap numbers like 1️⃣, 2️⃣, 3️⃣, 4️⃣, 5️⃣ with clean numbers
+    .replace(/([0-9])\uFE0F?\u20E3/g, '$1.')
+    // Clean up duplicate numbers if AI generated "1️⃣ 1." which became "1. 1."
+    .replace(/([0-9])\.\s+([0-9])\.\s+/g, '$2. ')
+    // Replace checkmarks (✅, ✔) with clean check bullet
+    .replace(/[✅✔]/g, ' [✓] ')
+    // Replace arrows
+    .replace(/[👉➔➜]/g, '-> ')
+    // Replace targets, pins, bookmarks, sparks with clean bullet
+    .replace(/[🎯📌📍]/g, '• ')
+    // Remove standalone emojis
+    .replace(/[📊📈📉💻📱💡🏛️✨🚀🎮📚🇮🇩🖼️🎬📑]/g, '')
+    // Remove any remaining surrogate pairs (emojis)
+    .replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '')
+    // Remove miscellaneous symbols & dingbats
+    .replace(/[\u2600-\u27BF]/g, '')
+    .replace(/[\uE000-\uF8FF]/g, '')
+    // Normalize clean ASCII quotes and dashes
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .replace(/[–—]/g, '-')
+    // Clean up excessive whitespace
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
+/**
  * Helper to add official BLSDM Komdigi Header in PDF documents
  */
 const addPDFHeader = (doc: jsPDF, title: string, subtitle?: string) => {
@@ -88,10 +121,10 @@ export const exportIdeasToPDF = (theme: string, dateStr: string, ideas: IdeaItem
 
   const tableData = ideas.map((idea, idx) => [
     `0${idx + 1}`,
-    idea.title || '-',
-    idea.pillar || '-',
-    idea.format || '-',
-    idea.summary || '-',
+    sanitizePDFText(idea.title || '-'),
+    sanitizePDFText(idea.pillar || '-'),
+    sanitizePDFText(idea.format || '-'),
+    sanitizePDFText(idea.summary || '-'),
     idea.reference_url || '-'
   ]);
 
@@ -186,21 +219,20 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
   let currentY = 48;
 
   if (isCarousel) {
-    // Carousel: Simple metadata (no hook/music rows in metadata table)
+    // 1. Sleek summary box (clean, not cluttered)
     const metaData = [
-      ['Judul Carousel', video.title || '-'],
-      ['Format Konten', video.format || '-'],
-      ['Jumlah Slide', video.duration || '-'],
-      ['Call to Action (CTA)', video.cta || '-']
+      ['Judul Konten', sanitizePDFText(video.title || theme)],
+      ['Format Konten', `Carousel Instagram (${video.duration || '5 Slide'})`],
+      ['Call to Action', sanitizePDFText(video.cta || '-')]
     ];
 
     autoTable(doc, {
       startY: currentY,
-      head: [['Parameter', 'Detail']],
+      head: [['INFORMASI KONTEN CAROUSEL', '']],
       body: metaData,
       theme: 'grid',
       headStyles: {
-        fillColor: [67, 56, 202],
+        fillColor: [11, 37, 69], // Komdigi Navy #0B2545
         textColor: [255, 255, 255],
         fontStyle: 'bold',
         fontSize: 9
@@ -208,64 +240,72 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
       bodyStyles: {
         fontSize: 8.5,
         textColor: [51, 65, 85],
-        cellPadding: 3.5
+        cellPadding: 3
       },
       columnStyles: {
-        0: { cellWidth: 45, fontStyle: 'bold', fillColor: [241, 245, 249] },
-        1: { cellWidth: 140 }
+        0: { cellWidth: 32, fontStyle: 'bold', fillColor: [248, 250, 252], textColor: [11, 37, 69] },
+        1: { cellWidth: 150 }
       }
     });
 
     currentY = (doc as any).lastAutoTable.finalY + 8;
 
-    // Carousel Slide Content Table: Posisi Slide | Teks Konten Slide | Arahan Visual Desain
+    // 2. Clean 2-column slide-by-slide layout (Slide | Konten & Arahan Visual)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
-    doc.setTextColor(30, 41, 59);
-    doc.text(tableTitle, 14, currentY);
+    doc.setTextColor(11, 37, 69);
+    doc.text('DRAF NASKAH SLIDE-BY-SLIDE', 14, currentY);
     currentY += 4;
 
-    const slideRows = (video.scenes || []).map((scene) => [
-      scene.duration && scene.duration.toLowerCase().startsWith('slide') ? scene.duration : `Slide ${scene.scene_number}`,
-      scene.narration || '-',
-      (scene.visual || '-').replace(/^Visual:\s*/i, '')
-    ]);
+    const slideRows = (video.scenes || []).map((scene, idx) => {
+      const rawHeader = scene.duration && scene.duration.toLowerCase().startsWith('slide') 
+        ? scene.duration 
+        : `Slide ${scene.scene_number || idx + 1}`;
+      const slideHeader = sanitizePDFText(rawHeader);
+
+      let content = sanitizePDFText(scene.narration || '-');
+      const cleanVisual = sanitizePDFText((scene.visual || '').replace(/^Visual:\s*/i, ''));
+      if (cleanVisual && cleanVisual !== '-') {
+        content += `\n\n[Arahan Visual Desain]\n${cleanVisual}`;
+      }
+
+      return [slideHeader, content];
+    });
 
     autoTable(doc, {
       startY: currentY,
-      head: [['Posisi Slide', 'Teks Konten Slide', 'Arahan Visual Desain']],
+      head: [['Posisi Slide', 'Naskah Konten Slide & Arahan Visual Desain']],
       body: slideRows,
       theme: 'grid',
       headStyles: {
-        fillColor: [49, 46, 129],
+        fillColor: [30, 41, 59], // Slate-800
         textColor: [255, 255, 255],
         fontStyle: 'bold',
         fontSize: 8.5,
         halign: 'center'
       },
       bodyStyles: {
-        fontSize: 8,
-        textColor: [51, 65, 85],
-        cellPadding: 4
+        fontSize: 8.5,
+        textColor: [30, 41, 59],
+        cellPadding: 4.5
       },
       columnStyles: {
-        0: { cellWidth: 42, fontStyle: 'bold' },
-        1: { cellWidth: 93 },
-        2: { cellWidth: 50, fontStyle: 'italic', textColor: [100, 116, 139] }
+        0: { cellWidth: 34, fontStyle: 'bold', halign: 'center', fillColor: [248, 250, 252], textColor: [11, 37, 69] },
+        1: { cellWidth: 148 }
       },
       alternateRowStyles: {
-        fillColor: [248, 250, 252]
+        fillColor: [255, 255, 255]
       }
     });
   } else {
     // Video/Poster: Full metadata table
     const metaData = [
-      [isPoster ? 'Judul Poster' : 'Judul Video', video.title || '-'],
-      ['Format Konten', video.format || '-'],
-      ['Spesifikasi / Durasi', video.duration || '-'],
-      [hookLabel, `"${video.hook || '-'}"`],
-      [musicLabel, video.music_suggestion || '-'],
-      ['Call to Action (CTA)', video.cta || '-']
+      [isPoster ? 'Judul Poster' : 'Judul Video', sanitizePDFText(video.title || '-')],
+      ['Format Konten', sanitizePDFText(video.format || '-')],
+      ['Spesifikasi / Durasi', sanitizePDFText(video.duration || '-')],
+      [hookLabel, `"${sanitizePDFText(video.hook || '-')}"`],
+      [musicLabel, sanitizePDFText(video.music_suggestion || '-')],
+      ['Call to Action (CTA)', sanitizePDFText(video.cta || '-')]
     ];
 
     autoTable(doc, {
@@ -306,9 +346,9 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
 
     const sceneRows = (video.scenes || []).map((scene) => [
       `${col1Name} ${scene.scene_number}`,
-      scene.duration || '-',
-      scene.visual || '-',
-      `"${scene.narration || '-'}"`
+      sanitizePDFText(scene.duration || '-'),
+      sanitizePDFText(scene.visual || '-'),
+      `"${sanitizePDFText(scene.narration || '-')}"`
     ]);
 
     autoTable(doc, {
@@ -356,7 +396,7 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
 
     currentY += 4;
 
-    const fullCaptionText = `${video.caption}\n\n${(video.hashtags || []).join(' ')}`;
+    const fullCaptionText = sanitizePDFText(`${video.caption}\n\n${(video.hashtags || []).join(' ')}`);
 
     autoTable(doc, {
       startY: currentY,
@@ -457,10 +497,10 @@ export const exportHistoryItemToPDF = (item: ContentIdea) => {
   if (item.ideas && item.ideas.length > 0) {
     const tableData = item.ideas.map((idea, idx) => [
       `0${idx + 1}`,
-      idea.title || '-',
-      idea.pillar || '-',
-      idea.format || '-',
-      idea.summary || '-',
+      sanitizePDFText(idea.title || '-'),
+      sanitizePDFText(idea.pillar || '-'),
+      sanitizePDFText(idea.format || '-'),
+      sanitizePDFText(idea.summary || '-'),
       idea.reference_url || '-'
     ]);
 
@@ -510,7 +550,7 @@ export const exportHistoryItemToPDF = (item: ContentIdea) => {
     autoTable(doc, {
       startY: currentY,
       head: [['Teks Caption Siap Publikasi']],
-      body: [[item.caption]],
+      body: [[sanitizePDFText(item.caption)]],
       theme: 'grid',
       headStyles: {
         fillColor: [79, 70, 229],
