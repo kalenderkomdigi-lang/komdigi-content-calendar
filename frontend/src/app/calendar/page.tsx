@@ -393,34 +393,32 @@ export default function CalendarPage() {
     let text = '';
 
     if (isCar) {
-      // Simple carousel format matching the user-requested slide layout
-      text += `${video.title}\n\n`;
+      // Clean, structured Google Docs carousel draft format
+      text += `Konten "${video.title}"\n\n`;
       video.scenes.forEach((s, i) => {
-        let heading = s.visual || `Topik ${i + 1}`;
-        let body = s.narration || '';
-        if (i === 0) {
-          const cleanHook = (video.hook || '').replace(/^["']|["']$/g, '').trim();
-          if (cleanHook && cleanHook.length > 0) {
-            heading = cleanHook;
-          }
-          if (body.toLowerCase() === s.visual?.toLowerCase()) {
-            body = '';
-          }
+        const slideHeader = s.duration && s.duration.toLowerCase().startsWith('slide') 
+          ? s.duration 
+          : `Slide ${i + 1}`;
+        text += `${slideHeader}\n\n`;
+        if (s.narration) {
+          text += `${s.narration}\n\n`;
+        }
+        if (s.visual) {
+          const cleanVisual = s.visual.replace(/^Visual:\s*/i, '');
+          text += `Visual: ${cleanVisual}\n\n\n`;
         } else {
-          heading = heading.replace(/^(Ilustrasi|Visual|Tampilan|Potongan|Transisi|B-roll|Deskripsi)[^:]*:\s*/i, '');
+          text += `\n`;
         }
-        body = body.replace(/^(Naskah narasi|Teks slide|Teks yang ditulis|Narasi)[^:]*:\s*/i, '').replace(/^["']|["']$/g, '');
-
-        text += `Slide ${i + 1}\n`;
-        text += `${heading}\n`;
-        if (body && body.toLowerCase() !== heading.toLowerCase()) {
-          text += `${body}\n`;
-        }
-        text += `\n`;
       });
       const refUrl = generatedIdeas[index]?.reference_url;
       if (refUrl) {
-        text += `Sumber :\n${refUrl}\n`;
+        text += `Sumber :\n${refUrl}\n\n`;
+      }
+      if (video.caption) {
+        text += `Caption Siap Tayang:\n${video.caption}\n\n`;
+      }
+      if (video.hashtags && video.hashtags.length > 0) {
+        text += `${video.hashtags.join(' ')}\n`;
       }
     } else {
       const headerEmoji = isPost ? '🖼️' : '🎬';
@@ -1175,42 +1173,38 @@ export default function CalendarPage() {
 
                               {isCar ? (
                                 <>
-                                  {/* Carousel: Simple slide-by-slide text content */}
-                                  <div className="space-y-3">
+                                  {/* Carousel: Structured Google Docs-style slide-by-slide draft */}
+                                  <div className="space-y-3.5">
                                     {generatedVideos[idx].scenes.map((scene, sIdx) => {
-                                      let slideHeading = scene.visual || `Topik ${sIdx + 1}`;
-                                      let slideBody = scene.narration || '';
-
-                                      // If it's slide 1 (Cover)
-                                      if (sIdx === 0) {
-                                        const cleanHook = (generatedVideos[idx].hook || '').replace(/^["']|["']$/g, '').trim();
-                                        if (cleanHook && cleanHook.length > 0) {
-                                          slideHeading = cleanHook;
-                                        } else if (slideHeading.toLowerCase().includes('host') || slideHeading.toLowerCase().includes('studio') || slideHeading.length > 70) {
-                                          slideHeading = `INI DIA! ${idea.title || 'Informasi Publik'}`;
-                                        }
-                                        if (slideBody.toLowerCase() === scene.visual?.toLowerCase()) {
-                                          slideBody = '';
-                                        }
-                                      } else {
-                                        // Clean up any lingering video-style prefixes
-                                        slideHeading = slideHeading.replace(/^(Ilustrasi|Visual|Tampilan|Potongan|Transisi|B-roll|Deskripsi)[^:]*:\s*/i, '');
-                                      }
-
-                                      slideBody = slideBody.replace(/^(Naskah narasi|Teks slide|Teks yang ditulis|Narasi)[^:]*:\s*/i, '').replace(/^["']|["']$/g, '');
+                                      const slideHeader = scene.duration && scene.duration.toLowerCase().startsWith('slide')
+                                        ? scene.duration
+                                        : `Slide ${sIdx + 1}`;
+                                      const cleanVisual = (scene.visual || '').replace(/^Visual:\s*/i, '').trim();
 
                                       return (
-                                        <div key={sIdx} className="bg-white p-3.5 rounded-lg border border-slate-200">
-                                          <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-1">
-                                            Slide {sIdx + 1}
-                                          </span>
-                                          <h6 className="text-xs font-bold text-[#0B2545] leading-snug">
-                                            {slideHeading}
-                                          </h6>
-                                          {slideBody && slideBody.toLowerCase() !== slideHeading.toLowerCase() && (
-                                            <p className="text-xs text-slate-600 mt-1.5 leading-relaxed whitespace-pre-line">
-                                              {slideBody}
-                                            </p>
+                                        <div key={sIdx} className="bg-white p-4 rounded-xl border border-slate-200/90 shadow-2xs space-y-2.5">
+                                          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                                            <span className="text-xs font-black text-indigo-700 font-display">
+                                              {slideHeader}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
+                                              Slide 0{sIdx + 1}
+                                            </span>
+                                          </div>
+
+                                          {/* Konten Teks Slide */}
+                                          {scene.narration && (
+                                            <div className="text-xs text-slate-800 leading-relaxed font-medium whitespace-pre-line bg-slate-50/70 p-3.5 rounded-lg border border-slate-100 font-sans">
+                                              {scene.narration}
+                                            </div>
+                                          )}
+
+                                          {/* Arahan Visual Desain Slide */}
+                                          {cleanVisual && (
+                                            <div className="text-[11px] text-slate-600 bg-amber-50/70 border border-amber-200/70 p-2.5 rounded-lg flex items-start space-x-2">
+                                              <span className="font-bold text-amber-800 shrink-0">🎨 Visual:</span>
+                                              <span className="italic text-slate-700">{cleanVisual}</span>
+                                            </div>
                                           )}
                                         </div>
                                       );

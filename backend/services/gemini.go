@@ -356,46 +356,46 @@ func GenerateMockVideoContent(theme string, idea models.IdeaItem) models.VideoCo
 	fmtLower := strings.ToLower(idea.Format)
 	if strings.Contains(fmtLower, "carousel") {
 		return models.VideoContent{
-			Title:    fmt.Sprintf("%s", ideaTitle),
+			Title:    ideaTitle,
 			Format:   "Carousel Instagram",
 			Duration: "5 Slide",
-			Hook:     fmt.Sprintf("INI DIA! Panduan Lengkap Seputar %s", theme),
+			Hook:     fmt.Sprintf("Mau Pelajari %s? Ini Panduan Lengkap Buat Pemula!", theme),
 			Scenes: []models.VideoScene{
 				{
 					SceneNumber: 1,
-					Visual:      fmt.Sprintf("INI DIA! %s", ideaTitle),
-					Narration:   fmt.Sprintf("Geser ke kiri untuk mempelajari poin-poin penting seputar %s 👉", theme),
-					Duration:    "Slide 1 (Cover)",
+					Duration:    "Slide 1 - Cover / Judul Utama",
+					Visual:      "Ilustrasi laptop, grafik data, dan simbol coding (</>)",
+					Narration: fmt.Sprintf("Judul besar:\n📊 \"Mau Kuasai %s? Ini Starter Kit Lengkap Buat Pemula!\"\n\nSubjudul kecil:\nSemua bisa mulai dipelajari dari rumah, tanpa biaya & cocok buat mahasiswa maupun profesional muda.\n#%s #LiterasiDigital #Komdigi", ideaTitle, strings.ReplaceAll(theme, " ", "")),
 				},
 				{
 					SceneNumber: 2,
-					Visual:      "Pentingnya Kecakapan Digital di Era Modern",
-					Narration:   "Di era transformasi saat ini, pemahaman terhadap teknologi bukan lagi pilihan, melainkan kebutuhan mendasar. Dengan literasi digital yang baik, masyarakat dapat lebih produktif, aman dari kejahatan siber, serta mampu beradaptasi dengan perubahan industri secara optimal.",
-					Duration:    "Slide 2",
+					Duration:    "Slide 2 - Fondasi & Tool 1 & 2",
+					Visual:      "Logo platform open-source + ilustrasi laptop coding",
+					Narration:   "1️⃣ 1. Google Colab & Cloud Environment\nJupyter Notebook berbasis cloud. Bisa langsung praktik coding Python tanpa install software berat!\n✅ Cocok untuk pemula & kerja kolaborasi tim.\n\n2️⃣ 2. Python Ecosystem\nBahasa pemrograman utama di industri digital. Dokumentasi melimpah & komunitas global yang luas.\n✅ Gunakan via Colab, Anaconda, atau Replit.",
 				},
 				{
 					SceneNumber: 3,
-					Visual:      "Pemanfaatan Teknologi untuk Efisiensi & Kemudahan",
-					Narration:   "Teknologi digital seperti cloud computing, otomatisasi, dan Internet of Things (IoT) saling terhubung untuk menciptakan ekosistem yang lebih cerdas. Hal ini memungkinkan pengelolaan data secara real-time, pengurangan kesalahan manual, dan peningkatan efisiensi layanan publik.",
-					Duration:    "Slide 3",
+					Duration:    "Slide 3 - Tool 3 & 4 (Eksplorasi Data)",
+					Visual:      "Visual mockup dashboard analitik dan bagan statistik",
+					Narration:   "3️⃣ 3. R & RStudio\nBahasa statistik powerful. Banyak dipakai untuk visualisasi data interaktif & pemodelan statistik mendalam.\n✅ Cocok buat kamu yang suka statistik, riset, dan analisis data.\n\n4️⃣ 4. Git & GitHub\nSistem version control untuk menyimpan kode, tracking perubahan, dan portofolio proyek.\n✅ Wajib dimiliki talenta digital untuk pamer karya ke rekruter.",
 				},
 				{
 					SceneNumber: 4,
-					Visual:      "Peningkatan Keterampilan Bersama BLSDM Komdigi",
-					Narration:   "Kementerian Komunikasi dan Digital melalui BLSDM menyediakan berbagai program pelatihan dan beasiswa Digital Talent Scholarship (DTS) berstandar industri. Program ini dirancang untuk mencetak talenta digital Indonesia yang kompeten dan siap kerja.",
-					Duration:    "Slide 4",
+					Duration:    "Slide 4 - Praktik & Sumber Belajar",
+					Visual:      "Bagan roadmap alur belajar gratis berstandar industri",
+					Narration:   "5️⃣ 5. Kaggle & Dataset Terbuka\nPlatform komunitas global untuk menemukan ribuan dataset gratis dan tantangan coding nyata.\n✅ Latih skill dengan memecahkan studi kasus industri riil.",
 				},
 				{
 					SceneNumber: 5,
-					Visual:      "Simpan & Bagikan Informasi Ini!",
-					Narration:   "Simpan (Save) postingan ini agar tidak lupa dan bagikan ke teman atau rekan kerjamu. Kunjungi website resmi digitaltalent.komdigi.go.id untuk info pendaftaran program pelatihan gratis!",
-					Duration:    "Slide 5 (CTA)",
+					Duration:    "Slide 5 - Penutup & Call to Action",
+					Visual:      "Logo resmi Komdigi RI, visual icon Save, Share, dan tombol Follow akun",
+					Narration:   "🎯 Langkah Selanjutnya:\nMau belajar lebih dalam dan dapat sertifikasi kompetensi resmi gratis dari pemerintah?\nIkuti program beasiswa pelatihan Digital Talent Scholarship (DTS) dari BLSDM Komdigi di digitaltalent.komdigi.go.id!\n\n📌 Simpan (Save) postingan ini agar tidak lupa & Bagikan (Share) ke rekan kerjamu!",
 				},
 			},
-			Caption:         fmt.Sprintf("🏛️ [%s] 🏛️\n\nHalo Digiers! Geser slide di atas untuk menyimak rangkuman lengkap mengenai %s. Jangan lupa simpan postingan ini ya! ✨", ideaTitle, theme),
-			Hashtags:        []string{"#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"},
-			MusicSuggestion: "Audio tren Instagram yang tenang dan elegan",
-			CTA:             "Simpan postingan ini & kunjungi portal resmi BLSDM Komdigi! 💻",
+			Caption:         fmt.Sprintf("🏛️ [%s] 🏛️\n\nHalo Digiers! Geser slide di atas untuk menyimak draf panduan seputar %s. Jangan lupa simpan postingan ini ya! ✨", ideaTitle, theme),
+			Hashtags:        []string{"#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital", "#Komdigi"},
+			MusicSuggestion: "Audio tren Instagram berirama lo-fi atau edukatif santai",
+			CTA:             "Simpan postingan ini & kunjungi portal resmi digitaltalent.komdigi.go.id! 💻",
 		}
 	} else if strings.Contains(fmtLower, "poster") || strings.Contains(fmtLower, "infografis") {
 		return models.VideoContent{
@@ -491,66 +491,88 @@ func GenerateVideoContentWithGemini(ctx context.Context, theme string, idea mode
 	var prompt string
 
 	if isCarousel {
-		prompt = fmt.Sprintf(`Kamu adalah penulis konten Carousel Instagram profesional untuk media sosial resmi instansi pemerintah (BLSDM Komdigi).
+		prompt = fmt.Sprintf(`Kamu adalah Social Media Strategist dan Perancang Konten Carousel Instagram profesional untuk akun resmi instansi pemerintah (BLSDM Komdigi).
 
-Konten ini adalah CAROUSEL INSTAGRAM (slide gambar geser). Setiap slide berisi TEKS KONTEN SAJA:
-- "visual" = Judul/heading singkat topik slide tersebut (contoh: "Kecerdasan Buatan (AI)", "Manfaat Cloud Computing")
-- "narration" = Paragraf penjelasan lengkap isi slide tersebut
+Tugasmu adalah membuat DRAF NASKAH SLIDE CAROUSEL INSTAGRAM (5-6 slide) yang terstruktur, padat, dan menarik persis seperti standar draf konten media sosial instansi:
 
-DILARANG KERAS:
-- Jangan gunakan istilah kamera, shot, angle, studio, presenter, pembawa acara, adegan, voiceover, detik, tipografi, desain grafis, layout, warna, ilustrasi, icon, atau deskripsi visual/desain apapun.
-- Cukup tulis KONTEN TEKS murni: heading topik dan paragraf penjelasan.
+KETENTUAN STRUKTUR SETIAP SLIDE:
+1. "duration": Judul/posisi slide (contoh: "Slide 1 - Cover / Judul Utama", "Slide 2 - Tool 1 & 2", "Slide 3 - Tool 3 & 4", "Slide 4 - Praktik & Tips Penting", "Slide 5 - Penutup & Call to Action").
+2. "narration": Teks lengkap isi konten yang akan ditampilkan di slide:
+   - Untuk Slide 1 (Cover):
+     Judul besar:
+     📊 "[Headline Hook yang Menarik Audiens dalam Tanda Petik]"
+
+     Subjudul kecil:
+     [Penjelasan singkat manfaat materi & target audiens yang relevan].
+     #TagarUtama #LiterasiDigital #Komdigi
+
+   - Untuk Slide 2 s/d 4 (Isi Konten & Tools / Langkah Praktis):
+     Gunakan format 2 poin per slide dengan nomor dan emoji penjelas:
+     1️⃣ 1. [Nama Tool / Konsep / Langkah 1]
+     [Penjelasan ringkas fungsi utama 1-2 kalimat]
+     ✅ [Keunggulan atau tips pemanfaatan bagi audiens]
+
+     2️⃣ 2. [Nama Tool / Konsep / Langkah 2]
+     [Penjelasan ringkas fungsi utama 1-2 kalimat]
+     ✅ [Keunggulan atau tips pemanfaatan bagi audiens]
+
+   - Untuk Slide Terakhir (Penutup & Call to Action):
+     🎯 Langkah Selanjutnya:
+     [Ajakan meningkatkan kompetensi digital bersama program beasiswa pelatihan gratis Digital Talent Scholarship (DTS) dari BLSDM Komdigi di digitaltalent.komdigi.go.id].
+
+     📌 Simpan (Save) postingan ini agar tidak lupa & Bagikan (Share) ke rekan kerjamu!
+
+3. "visual": Catatan arahan visual grafis sederhana untuk desainer slide (contoh: "Ilustrasi laptop, grafik data, dan simbol coding (</>)" atau "Logo Google Colab & Python + ilustrasi laptop coding"). DILARANG menggunakan istilah video (seperti "kamera", "shot", "studio", "presenter", "detik", "zoom").
 
 Berdasarkan tema: "%s" dan IDE KONTEN:
 - Judul Ide: "%s"
 - Ringkasan: "%s"
-- Format: Carousel Instagram (5-7 Slide)
+- Format: Carousel Instagram (5-6 Slide)
 - Pilar: "%s"
-
-Buatkan konten teks slide-by-slide (5-7 slide):
-- "title": Judul Carousel
-- "format": "Carousel Instagram"
-- "duration": "5-7 Slide"
-- "hook": Headline besar penarik perhatian untuk Cover (Slide 1)
-- "scenes": Array berisi 5-7 slide:
-  * Slide 1 (Cover):
-    - "scene_number": 1
-    - "duration": "Slide 1 (Cover)"
-    - "visual": Headline/hook utama carousel (contoh: "INI DIA! 5 Teknologi yang Mengubah Dunia")
-    - "narration": Sama dengan visual atau kosong
-  * Slide 2-N (Isi Materi):
-    - "scene_number": 2, 3, dst.
-    - "duration": "Slide 2", "Slide 3", dst.
-    - "visual": Judul/heading singkat topik slide (contoh: "Kecerdasan Buatan (AI)")
-    - "narration": Paragraf penjelasan lengkap tentang topik tersebut
-  * Slide Terakhir (CTA/Penutup):
-    - "scene_number": Terakhir
-    - "duration": "Slide Terakhir (CTA)"
-    - "visual": Heading penutup (contoh: "Simpan & Bagikan!")
-    - "narration": "Simpan postingan ini dan bagikan kepada sesama Digiers! Kunjungi portal resmi BLSDM Komdigi untuk informasi lebih lanjut."
-- "caption": Caption Instagram lengkap dengan sapaan "Halo Digiers!", ringkasan materi, ajakan bertindak (CTA).
-- "hashtags": Array hashtag (#BLSDMKomdigi #DigitalTalentScholarship #LiterasiDigital)
-- "music_suggestion": Rekomendasi audio/lagu tren Instagram
-- "cta": Call to Action penutup
 
 Format output harus tepat berupa JSON object:
 {
-  "title": "...",
+  "title": "%s",
   "format": "Carousel Instagram",
   "duration": "5 Slide",
   "hook": "...",
   "scenes": [
-    {"scene_number": 1, "duration": "Slide 1 (Cover)", "visual": "...", "narration": "..."},
-    {"scene_number": 2, "duration": "Slide 2", "visual": "...", "narration": "..."},
-    {"scene_number": 3, "duration": "Slide 3", "visual": "...", "narration": "..."},
-    {"scene_number": 4, "duration": "Slide 4", "visual": "...", "narration": "..."},
-    {"scene_number": 5, "duration": "Slide 5 (CTA)", "visual": "...", "narration": "..."}
+    {
+      "scene_number": 1,
+      "duration": "Slide 1 - Cover / Judul Utama",
+      "visual": "Ilustrasi laptop, grafik data, dan simbol coding (</>)",
+      "narration": "Judul besar:\n📊 \"...\"\n\nSubjudul kecil:\n...\n#Hashtag #BLSDMKomdigi"
+    },
+    {
+      "scene_number": 2,
+      "duration": "Slide 2 - ...",
+      "visual": "Logo tool + ilustrasi pendukung",
+      "narration": "1️⃣ 1. ...\n...\n✅ ...\n\n2️⃣ 2. ...\n...\n✅ ..."
+    },
+    {
+      "scene_number": 3,
+      "duration": "Slide 3 - ...",
+      "visual": "Visual infografis dan bagan alur",
+      "narration": "3️⃣ 3. ...\n...\n✅ ...\n\n4️⃣ 4. ...\n...\n✅ ..."
+    },
+    {
+      "scene_number": 4,
+      "duration": "Slide 4 - ...",
+      "visual": "Bagan roadmap program peningkatan skill",
+      "narration": "5️⃣ 5. ...\n...\n✅ ..."
+    },
+    {
+      "scene_number": 5,
+      "duration": "Slide 5 - Penutup & Call to Action",
+      "visual": "Logo resmi Komdigi RI, visual icon Save, Share, dan tombol Follow akun",
+      "narration": "🎯 Langkah Selanjutnya:\n...\n\n📌 Simpan (Save) postingan ini agar tidak lupa & Bagikan (Share) ke rekan kerjamu!"
+    }
   ],
   "caption": "...",
   "hashtags": ["#BLSDMKomdigi", "#DigitalTalentScholarship", "#LiterasiDigital"],
-  "music_suggestion": "...",
-  "cta": "..."
-}`, theme, idea.Title, idea.Summary, idea.Pillar)
+  "music_suggestion": "Audio tren Instagram berirama lo-fi atau edukatif santai",
+  "cta": "Simpan postingan ini & kunjungi portal resmi digitaltalent.komdigi.go.id!"
+}`, theme, idea.Title, idea.Summary, idea.Pillar, idea.Title)
 	} else if isPoster {
 		prompt = fmt.Sprintf(`Kamu adalah Graphic Designer dan Creative Director profesional untuk infografis media sosial resmi instansi pemerintah (BLSDM Komdigi).
 
@@ -681,12 +703,15 @@ Format output harus tepat berupa JSON object:
 		}
 		for i := range videoContent.Scenes {
 			videoContent.Scenes[i].SceneNumber = i + 1
-			if i == 0 {
-				videoContent.Scenes[i].Duration = "Slide 1 (Cover)"
-			} else if i == len(videoContent.Scenes)-1 {
-				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d (CTA/Penutup)", i+1)
-			} else {
-				videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
+			curDur := strings.TrimSpace(videoContent.Scenes[i].Duration)
+			if !strings.HasPrefix(strings.ToLower(curDur), "slide") {
+				if i == 0 {
+					videoContent.Scenes[i].Duration = "Slide 1 - Cover / Judul Utama"
+				} else if i == len(videoContent.Scenes)-1 {
+					videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d - Penutup & CTA", i+1)
+				} else {
+					videoContent.Scenes[i].Duration = fmt.Sprintf("Slide %d", i+1)
+				}
 			}
 		}
 	} else if isPoster {

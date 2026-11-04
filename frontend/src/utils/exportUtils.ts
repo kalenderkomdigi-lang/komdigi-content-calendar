@@ -218,7 +218,7 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
 
     currentY = (doc as any).lastAutoTable.finalY + 8;
 
-    // Carousel Slide Content Table: Slide # | Judul Slide | Teks Konten
+    // Carousel Slide Content Table: Posisi Slide | Teks Konten Slide | Arahan Visual Desain
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(10);
     doc.setTextColor(30, 41, 59);
@@ -226,14 +226,14 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
     currentY += 4;
 
     const slideRows = (video.scenes || []).map((scene) => [
-      `Slide ${scene.scene_number}`,
-      scene.visual || '-',
-      scene.narration && scene.narration.toLowerCase() !== scene.visual?.toLowerCase() ? scene.narration : '-'
+      scene.duration && scene.duration.toLowerCase().startsWith('slide') ? scene.duration : `Slide ${scene.scene_number}`,
+      scene.narration || '-',
+      (scene.visual || '-').replace(/^Visual:\s*/i, '')
     ]);
 
     autoTable(doc, {
       startY: currentY,
-      head: [['Slide', 'Judul / Heading Slide', 'Teks Konten Slide']],
+      head: [['Posisi Slide', 'Teks Konten Slide', 'Arahan Visual Desain']],
       body: slideRows,
       theme: 'grid',
       headStyles: {
@@ -249,9 +249,9 @@ export const exportStoryboardToPDF = (theme: string, video: VideoContent) => {
         cellPadding: 4
       },
       columnStyles: {
-        0: { cellWidth: 22, halign: 'center', fontStyle: 'bold' },
-        1: { cellWidth: 50, fontStyle: 'bold' },
-        2: { cellWidth: 113 }
+        0: { cellWidth: 42, fontStyle: 'bold' },
+        1: { cellWidth: 93 },
+        2: { cellWidth: 50, fontStyle: 'italic', textColor: [100, 116, 139] }
       },
       alternateRowStyles: {
         fillColor: [248, 250, 252]
@@ -410,23 +410,31 @@ export const exportStoryboardToExcel = (theme: string, video: VideoContent) => {
   XLSX.utils.book_append_sheet(workbook, metaSheet, isCarousel ? 'Konsep Carousel' : isPoster ? 'Konsep Poster' : 'Konsep Video');
 
   // Sheet 2: Breakdown Slides / Scenes
-  const col1Name = isCarousel ? 'Slide #' : isPoster ? 'Section #' : 'Scene #';
-  const col2Name = isCarousel ? 'Nomor Slide' : isPoster ? 'Bagian Poster' : 'Durasi';
-  const col3Name = isCarousel ? 'Judul / Topik Slide' : isPoster ? 'Layout Desain Visual' : 'Deskripsi Visual & Shot';
-  const col4Name = isCarousel ? 'Teks Penjelasan Slide' : isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
+  const col1Name = isPoster ? 'Section #' : 'Scene #';
+  const col2Name = isPoster ? 'Bagian Poster' : 'Durasi';
+  const col3Name = isPoster ? 'Layout Desain Visual' : 'Deskripsi Visual & Shot';
+  const col4Name = isPoster ? 'Teks Konten Poster' : 'Naskah Narasi / Dialog';
 
-  const sceneRows = (video.scenes || []).map((scene) => ({
-    [col1Name]: `Slide ${scene.scene_number}`,
-    [col2Name]: scene.duration || `Slide ${scene.scene_number}`,
+  const sceneRows = isCarousel ? (video.scenes || []).map((scene) => ({
+    'Posisi Slide': scene.duration && scene.duration.toLowerCase().startsWith('slide') ? scene.duration : `Slide ${scene.scene_number}`,
+    'Teks Konten Slide': scene.narration || '-',
+    'Arahan Visual Desain': (scene.visual || '-').replace(/^Visual:\s*/i, '')
+  })) : (video.scenes || []).map((scene) => ({
+    [col1Name]: `${isPoster ? 'Bagian' : 'Scene'} ${scene.scene_number}`,
+    [col2Name]: scene.duration,
     [col3Name]: scene.visual,
-    [col4Name]: scene.narration && scene.narration.toLowerCase() !== scene.visual?.toLowerCase() ? scene.narration : '-'
+    [col4Name]: scene.narration
   }));
   const sceneSheet = XLSX.utils.json_to_sheet(sceneRows);
-  sceneSheet['!cols'] = [
-    { wch: 12 },
-    { wch: 18 },
-    { wch: 45 },
-    { wch: 75 }
+  sceneSheet['!cols'] = isCarousel ? [
+    { wch: 30 },
+    { wch: 75 },
+    { wch: 45 }
+  ] : [
+    { wch: 10 },
+    { wch: 20 },
+    { wch: 55 },
+    { wch: 65 }
   ];
   XLSX.utils.book_append_sheet(workbook, sceneSheet, isCarousel ? 'Konten Slide' : isPoster ? 'Struktur Poster' : 'Storyboard Scenes');
 
